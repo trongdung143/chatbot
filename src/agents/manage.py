@@ -1,13 +1,13 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
-from src.config.settings import GOOGLE_API_KEY
+from src.config.setup import GOOGLE_API_KEY
 from langgraph.prebuilt import create_react_agent
 from src.agents.prompts.prompts_read import read_prompt
 
 # import tools
 from src.agents.tools.tranfers import transfer_to_chat
-from src.agents.tools.file_tools import *
-from src.agents.tools.system_tools import *
-from src.agents.tools.rag_tools import *
+from src.agents.tools.file import *
+from src.agents.tools.system import *
+from src.agents.tools.rag import *
 
 tools = [
     transfer_to_chat,

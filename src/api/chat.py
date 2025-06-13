@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Cookie, UploadFile, File, Form
 from typing import Optional
-from src.agents.base import swarm
+
+# from src.agents.base import swarm
+from src.agents.chat import agent
 from langchain_core.messages import HumanMessage, SystemMessage
-from src.utils.file_handler import save_upload_file_into_temp
+from src.utils.handler import save_upload_file_into_temp
 import json
 import redis.asyncio as redis
 
@@ -40,5 +42,5 @@ async def chatbot(
         ],
     }
     config = {"configurable": {"thread_id": session_id}}
-    result = await swarm.ainvoke(input_state, config=config, stream_mode="values")
+    result = await agent.ainvoke(input_state, config=config, stream_mode="values")
     return {"response": result["messages"][-1].content}

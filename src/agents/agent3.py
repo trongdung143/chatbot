@@ -1,7 +1,8 @@
 from langchain.chains import RetrievalQA
 from langchain_together import Together
-from src.config.settings import TOGETHER_API_KEY
-
+from src.config.setup import TOGETHER_API_KEY
+from langchain_community.vectorstores import FAISS
+from langchain.prompts import PromptTemplate
 
 model = Together(
     model="meta-llama/Llama-3.3-70B-Instruct-Turbo",
@@ -13,12 +14,12 @@ model = Together(
 )
 
 
-def create_qa_chain(vector_db, prompt) -> RetrievalQA:
+def create_qa_chain(vector_db: FAISS, prompt: PromptTemplate) -> RetrievalQA:
     qa_chain = RetrievalQA.from_chain_type(
         llm=model,
         chain_type="stuff",
         retriever=vector_db.as_retriever(search_kwargs={"k": 3}),
-        return_source_documents=False,
+        return_source_documents=True,
         chain_type_kwargs={"prompt": prompt},
     )
     return qa_chain

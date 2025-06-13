@@ -4,6 +4,7 @@ python-multipart
 langgraph 
 python-dotenv
 langchain
+sentence-transformers
 langchain_google_genai
 langgraph-swarm
 langchain-community 

@@ -6,7 +6,7 @@ import uuid
 import logging
 import json
 from datetime import datetime, timedelta
-from src.config.settings import *
+from src.config.setup import *
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

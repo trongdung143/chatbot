@@ -1,5 +1,5 @@
 import requests
-from src.config.settings import GOOGLE_API_KEY, SEARCH_ENGINE_ID
+from src.config.setup import GOOGLE_API_KEY, SEARCH_ENGINE_ID
 
 query = "chatgpt là gì"
 

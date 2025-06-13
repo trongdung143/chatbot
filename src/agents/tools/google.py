@@ -3,7 +3,7 @@ import httpx
 import base64
 from email.mime.text import MIMEText
 from langchain_core.tools import tool
-from src.config.settings import *
+from src.config.setup import *
 from datetime import datetime, timedelta
 
 
@@ -57,6 +57,9 @@ async def get_access_token(session_id: str) -> str:
             return None
     else:
         return access_token
+
+
+# ==================== GMAIL TOOLS ====================
 
 
 @tool
@@ -206,34 +209,119 @@ async def get_received_emails_by_date(session_id: str, after: str, before: str) 
         return "\n".join(subjects)
 
 
+# ==================== GOOGLE DRIVE TOOLS ====================
+
+
 @tool
-async def delete_email_by_id(session_id: str, message_id: str) -> str:
+async def list_drive_files(
+    session_id: str, folder_id: str = None, query: str = None
+) -> str:
     """
-    Delete a specific email from the user's Gmail account using its message ID.
+    List files in Google Drive with optional filters and customizable output (should ask the user what information is needed in the output).
 
     Args:
-        session_id (str): The session ID saved in the chat history.
-        message_id (str): The ID of the Gmail message to delete.
+        session_id (str): The session ID used to retrieve the access token.
+        folder_id (str, optional): ID of the folder to list files from. If None, lists from the root directory.
+        query (str, optional): A search query to filter files (e.g., "name contains 'report'").
 
     Returns:
-        str: A confirmation message or error details.
+        str: A list of matching files including details such as name, ID, MIME type, last modified time,
+             size, and web view link. The displayed fields may be customized based on user preferences.
+    """
+
+    access_token = await get_access_token(session_id)
+    if not access_token:
+        return "No access token found."
+
+    url = "https://www.googleapis.com/drive/v3/files"
+    headers = {"Authorization": f"Bearer {access_token}"}
+
+    params = {
+        "fields": "files(id,name,mimeType,modifiedTime,size,webViewLink)",
+        "pageSize": 100,
+    }
+
+    query_parts = []
+    if folder_id:
+        query_parts.append(f"'{folder_id}' in parents")
+    if query:
+        query_parts.append(query)
+
+    if query_parts:
+        params["q"] = " and ".join(query_parts)
+
+    try:
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(url, headers=headers, params=params)
+            resp.raise_for_status()
+            data = resp.json()
+
+            files = data.get("files", [])
+            if not files:
+                return "No files found."
+
+            results = []
+            for file in files:
+                file_info = (
+                    f"Name: {file['name']}\n"
+                    f"ID: {file['id']}\n"
+                    f"Type: {file['mimeType']}\n"
+                    f"Modified: {file.get('modifiedTime', 'Unknown')}\n"
+                    f"Size: {file.get('size', 'Unknown')} bytes\n"
+                    f"Link: {file.get('webViewLink', 'N/A')}\n"
+                    f"---"
+                )
+                results.append(file_info)
+
+            return "\n".join(results)
+
+    except httpx.HTTPStatusError as e:
+        return f"Failed to list files: {e.response.text}"
+    except Exception as e:
+        return f"An unexpected error occurred: {str(e)}"
+
+
+@tool
+async def delete_drive_file(session_id: str, files_id: str) -> str:
+    """
+    Delete one or more files from Google Drive.
+
+    Args:
+        session_id (str): The session ID used to retrieve the access token.
+        files_id (str): A single file ID or a space-separated string of multiple file IDs.
+
+    Returns:
+        str: Summary of deletion results (successes and failures).
     """
     access_token = await get_access_token(session_id)
     if not access_token:
         return "No access token found."
 
-    url = f"https://gmail.googleapis.com/gmail/v1/users/me/messages/{message_id}"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    }
+    success = []
+    failed = []
 
     try:
         async with httpx.AsyncClient() as client:
-            resp = await client.delete(url, headers=headers)
-            resp.raise_for_status()
-            return f"Message with ID {message_id} has been deleted successfully."
-    except httpx.HTTPStatusError as e:
-        return f"Failed to delete message: {e.response.text}"
+            for file_id in files_id.strip().split():
+                try:
+                    resp = await client.delete(
+                        f"https://www.googleapis.com/drive/v3/files/{file_id}",
+                        headers={"Authorization": f"Bearer {access_token}"},
+                    )
+                    resp.raise_for_status()
+                    success.append(file_id)
+                except httpx.HTTPStatusError as e:
+                    failed.append(f"{file_id} (HTTP error: {e.response.status_code})")
+                except Exception as ex:
+                    failed.append(f"{file_id} (error: {str(ex)})")
+
+        result = []
+        if success:
+            result.append(f"Deleted: {", ".join(success)}")
+        if failed:
+            result.append(f"Failed: {", ".join(failed)}")
+
+        return "\n".join(result) if result else "No file IDs were provided."
+
     except Exception as e:
-        return f"An unexpected error occurred: {str(e)}"
+        return f"Unexpected error: {str(e)}"

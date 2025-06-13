@@ -5,20 +5,19 @@ import glob
 
 
 @tool
-def save_upload_file(file_name: str, new_file_name: str = None) -> str:
+def save_upload_file(old_name: str, new_name: str | None) -> str:
     """
     Save a file for the user, optionally with a new name, while preserving the extension of the old file.
 
     Args:
-        file_name (str): The original file name located in the temporary folder 'src/agents/data/temp/'.
-        new_file_name (str, optional): The new name to save the file under in 'src/data/'.
-                                    If not provided, the original name will be used.
+        old_name (str): The original file name.
+        new_name (str, None): The new name to save the file. If not provided, the original name will be used.
 
     Returns:
         str: Message indicating the result of the save operation.
     """
     try:
-        temp_path = f"src/agents/data/temp/{file_name}"
+        temp_path = f"src/agents/data/temp/{old_name}"
         save_dir = "src/data"
 
         if not os.path.exists(temp_path):
@@ -26,7 +25,7 @@ def save_upload_file(file_name: str, new_file_name: str = None) -> str:
 
         os.makedirs(save_dir, exist_ok=True)
 
-        target_name = new_file_name if new_file_name else file_name
+        target_name = new_name if new_name else old_name
         target_path = os.path.join(save_dir, target_name)
 
         if os.path.exists(target_path):
@@ -87,21 +86,21 @@ def remove_file(file_name: str) -> str:
 
 
 @tool
-def rename_file(file_name: str, new_file_name: str) -> str:
+def rename_file(old_name: str, new_name: str) -> str:
     """
     Rename a file in the specified folder.
 
     Args:
-        file_name (str): The current name of the file.
-        new_file_name (str): The new name to assign to the file.
+        old_name (str): The current name of the file.
+        new_name (str): The new name to assign to the file.
 
     Returns:
         str: Message indicating the result of the rename operation.
     """
     try:
         folder_path = "src/data"
-        old_path = os.path.join(folder_path, file_name)
-        new_path = os.path.join(folder_path, new_file_name)
+        old_path = os.path.join(folder_path, old_name)
+        new_path = os.path.join(folder_path, new_name)
 
         if not os.path.exists(old_path):
             return "Original file does not exist."
@@ -110,20 +109,20 @@ def rename_file(file_name: str, new_file_name: str) -> str:
             return "A file with the new name already exists."
 
         os.rename(old_path, new_path)
-        return f"Renamed file {file_name} to {new_file_name}."
+        return f"Renamed file {old_name} to {new_name}."
 
     except Exception as e:
         return f"Error while renaming the file: {str(e)}"
 
 
 @tool
-def write_note(note_content: str, notefile_name: str) -> str:
+def write_note(note_content: str, note_name: str) -> str:
     """
     Create or overwrite a note file.
 
     Args:
         note_content (str): The content of the note.
-        notefile_name (str): The file name to save the note as, inside 'src/data/'.
+        note_name (str): The file name to save the note as, inside 'src/data/'.
 
     Returns:
         str: Confirmation message.
@@ -131,7 +130,7 @@ def write_note(note_content: str, notefile_name: str) -> str:
     try:
         folder_path = "src/data"
         os.makedirs(folder_path, exist_ok=True)
-        file_path = os.path.join(folder_path, notefile_name)
+        file_path = os.path.join(folder_path, note_name)
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(note_content)
         return "Note has been saved."
@@ -141,22 +140,22 @@ def write_note(note_content: str, notefile_name: str) -> str:
 
 
 @tool
-def read_note(notefile_name: str) -> str:
+def read_note(note_name: str) -> str:
     """
     Read the content from a note file.
 
     Args:
-        notefile_name (str): The name of the note file located in 'src/data'.
+        note_name (str): The name of the note file located in 'src/data'.
 
     Returns:
         str: The note content or an error message if not found.
     """
     try:
         folder_path = "src/data"
-        file_path = os.path.join(folder_path, notefile_name)
+        file_path = os.path.join(folder_path, note_name)
 
         if not os.path.exists(file_path):
-            return f"Note {notefile_name} not found in the notes folder."
+            return f"Note {note_name} not found in the notes folder."
 
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()

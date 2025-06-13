@@ -3,24 +3,33 @@ import os
 from langchain_community.document_loaders import RecursiveUrlLoader
 from bs4 import BeautifulSoup
 import re
-from tavily import TavilyClient
-from src.config.settings import TAVILY_API_KEY
+from tavily.async_tavily import AsyncTavilyClient
+from src.config.setup import TAVILY_API_KEY
+import asyncio
+import tiktoken
 
 
-def get_content_web_by_query(query: str) -> str:
-    client = TavilyClient(TAVILY_API_KEY)
-    response = client.search(query=query, max_results=2, include_raw_content="text")
-    return response["results"]
+def count_tokens(text, model="gpt-3.5-turbo"):
+    enc = tiktoken.encoding_for_model(model)
+    return len(enc.encode(text))
 
 
-def extract_text_from_pdf_data_path(pdf_data_path: str) -> str:
-    if not os.path.exists(pdf_data_path):
-        raise FileNotFoundError(f"PDF not found at: {pdf_data_path}")
+def extract_text_from_pdf(data_path: str) -> str:
+    if not os.path.exists(data_path):
+        raise FileNotFoundError(f"PDF not found at: {data_path}")
 
-    with fitz.open(pdf_data_path) as doc:
+    with fitz.open(data_path) as doc:
         text = "".join(page.get_text() for page in doc)
 
     return text
+
+
+async def get_content_web_by_query(query: str) -> str:
+    client = AsyncTavilyClient(TAVILY_API_KEY)
+    response = await client.search(
+        query=query, max_results=2, include_raw_content="text"
+    )
+    return response["results"]
 
 
 def bs4_extractor(html: str) -> str:
@@ -31,12 +40,11 @@ def bs4_extractor(html: str) -> str:
     return content
 
 
-def get_content_web_by_url(url: str):
+async def get_content_web_by_url(url: str):
     loader = RecursiveUrlLoader(
         url,
         max_depth=5,
         extractor=bs4_extractor,
     )
-
-    docs = loader.lazy_load()
+    docs = await asyncio.to_thread(loader.load)
     return docs

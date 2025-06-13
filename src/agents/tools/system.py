@@ -3,7 +3,7 @@ from langchain_core.tools import tool
 import subprocess
 import os
 import shutil
-from src.config.settings import *
+from src.config.setup import *
 
 TEMP_FOLDER = "src/agents/data/temp"
 

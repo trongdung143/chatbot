@@ -1,3 +1,5 @@
+import os
+import asyncio
 from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
     CharacterTextSplitter,
@@ -6,8 +8,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 
-import os
-from src.utils.file_converter import word_to_pdf
+
+from src.utils.converter import word_to_pdf
 from src.utils.document_loader import get_content_web_by_url
 
 
@@ -23,7 +25,7 @@ def remove_duplicate_paragraphs(text: str) -> str:
     return "\n\n".join(unique_paragraphs)
 
 
-def create_vector_db_from_text(url: str) -> FAISS:
+async def create_vector_db_from_text(url: str) -> FAISS:
     content = ""
     docs = get_content_web_by_url(url)
     for doc in docs:
@@ -32,21 +34,21 @@ def create_vector_db_from_text(url: str) -> FAISS:
     lines = content.splitlines()
     cleaned_lines = [line.strip() for line in lines if line.strip() != ""]
     content = "\n".join(cleaned_lines)
-
     content = remove_duplicate_paragraphs(content)
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     texts = text_splitter.split_text(content)
+
     embedding = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-    db = FAISS.from_texts(texts, embedding)
+
+    db = await FAISS.afrom_texts(texts, embedding)
     return db
 
 
-def create_vector_db_from_file(file_path: str, vector_db_path: str):
+async def create_vector_db_from_file(file_path: str, vector_db_path: str):
     extension = os.path.splitext(file_path)[1].lower()
-
     temp_pdf_created = False
 
     if extension == ".docx":
@@ -54,30 +56,34 @@ def create_vector_db_from_file(file_path: str, vector_db_path: str):
         temp_pdf_created = True
 
     loader = PyPDFLoader(file_path)
-    documents = loader.load()
+    documents = await asyncio.to_thread(loader.load)
 
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=200,
         add_start_index=True,
     )
-    texts = text_splitter.split_documents(documents)
+    texts = await asyncio.to_thread(text_splitter.split_documents, documents)
 
     embedding = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-    db = FAISS.from_documents(texts, embedding)
-    db.save_local(vector_db_path)
+
+    db = await asyncio.to_thread(FAISS.from_documents, texts, embedding)
+    await asyncio.to_thread(db.save_local, vector_db_path)
 
     if temp_pdf_created:
         os.remove(file_path)
 
 
-def read_vertors_db(vector_db_path: str) -> FAISS:
+async def read_vertors_db(vector_db_path: str) -> FAISS:
     embedding = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )
-    db = FAISS.load_local(
-        vector_db_path, embedding, allow_dangerous_deserialization=True
+    db = await asyncio.to_thread(
+        FAISS.load_local,
+        vector_db_path,
+        embedding,
+        allow_dangerous_deserialization=True,
     )
     return db
