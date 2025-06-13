@@ -1,7 +1,7 @@
 from langgraph_swarm import SwarmState, add_active_agent_router
 from langgraph.checkpoint.memory import MemorySaver
-from src.agents.agent1 import agent as agent1
-from src.agents.agent2 import agent as agent2
+from src.agents.manage_agent import agent as agent1
+from src.agents.chat_agent import agent as agent2
 from langgraph.graph import StateGraph
 
 checkpointer = MemorySaver()

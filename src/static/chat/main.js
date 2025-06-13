@@ -579,7 +579,7 @@ function startNewConversation() {
 
 function removeOldConversations() {
   const now = Date.now();
-  const oneDay = 24 * 60 * 60 * 1000;
+  const oneDay = 24 * 60 * 60;
   conversations = conversations.filter((conversation) => {
     return now - conversation.timestamp < oneDay;
   });

@@ -25,7 +25,7 @@ window.onload = () => {
     accessToken = token;
 
     statusEl.innerHTML =
-      "🚀 Đăng nhập thành công! Chào mừng bạn đến với hệ thống.";
+      "Đăng nhập thành công! Chào mừng bạn đến với hệ thống.";
     statusEl.classList.add("success", "show");
 
     document.getElementById("loginBtn").style.display = "none";

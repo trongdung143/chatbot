@@ -1,7 +1,7 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from src.config.settings import GOOGLE_API_KEY
 from langgraph.prebuilt import create_react_agent
-from src.agents.prompts_read import read_prompt
+from src.agents.prompts.prompts_read import read_prompt
 
 # import tools
 from src.agents.tools.tranfers import transfer_to_chat
@@ -55,5 +55,5 @@ agent = create_react_agent(
     model=model,
     tools=tools,
     name="manage",
-    prompt=read_prompt("src/agents/prompts.txt"),
+    prompt=read_prompt("src/agents/prompts/prompts.txt"),
 )

@@ -6,7 +6,7 @@ from langgraph.prebuilt import create_react_agent
 from src.agents.tools.tranfers import transfer_to_manage
 from src.agents.tools.life_tools import *
 from src.agents.tools.rag_tools import *
-from src.agents.prompts_read import *
+from src.agents.prompts.prompts_read import *
 from src.agents.tools.google_tools import *
 
 tools = [
@@ -31,5 +31,5 @@ agent = create_react_agent(
     model=model,
     tools=tools,
     name="chat",
-    prompt=read_prompt("src/agents/prompts.txt"),
+    prompt=read_prompt("src/agents/prompts/prompts.txt"),
 )
