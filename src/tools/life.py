@@ -23,7 +23,7 @@ def get_weather(address: str) -> str:
     Get weather information for a given location.
 
     Args:
-        address (str): The name of the city or address to retrieve weather information for.
+        address (str): The name.txt of the city or address to retrieve weather information for.
 
     Returns:
         str: Weather information for the specified address, or a default message if unavailable.

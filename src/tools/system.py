@@ -5,7 +5,7 @@ import os
 import shutil
 from src.config.setup import *
 
-TEMP_FOLDER = "src/agents/data/temp"
+TEMP_FOLDER = "src/tools/data/temp"
 
 
 def finish_system(folder_path: str):
@@ -85,7 +85,7 @@ def restart_server(password: str) -> str:
         return "Incorrect password."
 
     try:
-        subprocess.Popen(["powershell.exe", "src/config/restart_server.ps1"])
+        subprocess.Popen(["powershell.exe", "src/config/system/restart_server.ps1"])
         return "Server is restarting...\nPlease wait a moment."
     except Exception as e:
         return f"Error while restarting: {e}"
@@ -94,10 +94,10 @@ def restart_server(password: str) -> str:
 @tool
 def open_application(app_name: str) -> str:
     """
-    Open the specified application by its name.
+    Open the specified application by its name.txt.
 
     Args:
-        app_name (str): The name of the application as defined in supported_apps.json.
+        app_name (str): The name.txt of the application as defined in supported_apps.json.
 
     Returns:
         str: A success message or a list of supported applications if not found.
@@ -117,10 +117,10 @@ def open_application(app_name: str) -> str:
 @tool
 def close_application(app_name: str) -> str:
     """
-    Close the specified application by its name.
+    Close the specified application by its name.txt.
 
     Args:
-        app_name (str): The name of the application as defined in supported_apps.json.
+        app_name (str): The name.txt of the application as defined in supported_apps.json.
 
     Returns:
         str: A success message or a list of supported applications if not found.
@@ -159,7 +159,7 @@ def shutdown_system(password: str) -> str:
         return "Incorrect password."
 
     try:
-        subprocess.Popen(["powershell.exe", "src/config/shutdown_system.ps1"])
+        subprocess.Popen(["powershell.exe", "src/config/system/shutdown_system.ps1"])
         return "System is shutting down..."
     except Exception as e:
         return f"Error while shutting down: {e}"
@@ -181,7 +181,7 @@ def restart_system(password: str) -> str:
         return "Incorrect password."
 
     try:
-        subprocess.Popen(["powershell.exe", "src/config/restart_system.ps1"])
+        subprocess.Popen(["powershell.exe", "src/config/system/restart_system.ps1"])
         return "System is restarting..."
     except Exception as e:
         return f"Error while restarting: {e}"

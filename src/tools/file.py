@@ -3,21 +3,20 @@ from langchain_core.tools import tool
 import shutil
 import glob
 
-
 @tool
 def save_upload_file(old_name: str, new_name: str | None) -> str:
     """
-    Save a file for the user, optionally with a new name, while preserving the extension of the old file.
+    Save a file for the user, optionally with a new name.txt, while preserving the extension of the old file.
 
     Args:
-        old_name (str): The original file name.
-        new_name (str, None): The new name to save the file. If not provided, the original name will be used.
+        old_name (str): The original file name.txt.
+        new_name (str, None): The new name.txt to save the file. If not provided, the original name.txt will be used.
 
     Returns:
         str: Message indicating the result of the save operation.
     """
     try:
-        temp_path = f"src/agents/data/temp/{old_name}"
+        temp_path = f"src/tools/data/temp/{old_name}"
         save_dir = "src/data"
 
         if not os.path.exists(temp_path):
@@ -29,7 +28,7 @@ def save_upload_file(old_name: str, new_name: str | None) -> str:
         target_path = os.path.join(save_dir, target_name)
 
         if os.path.exists(target_path):
-            return "A file with the new name already exists."
+            return "A file with the new name.txt already exists."
 
         shutil.move(temp_path, target_path)
         return f"File has been successfully saved as {target_name}."
@@ -67,7 +66,7 @@ def remove_file(file_name: str) -> str:
     Delete a specific file from a given folder.
 
     Args:
-        file_name (str): The name of the file to delete.
+        file_name (str): The name.txt of the file to delete.
 
     Returns:
         str: Message indicating whether the file was successfully deleted.
@@ -91,8 +90,8 @@ def rename_file(old_name: str, new_name: str) -> str:
     Rename a file in the specified folder.
 
     Args:
-        old_name (str): The current name of the file.
-        new_name (str): The new name to assign to the file.
+        old_name (str): The current name.txt of the file.
+        new_name (str): The new name.txt to assign to the file.
 
     Returns:
         str: Message indicating the result of the rename operation.
@@ -106,7 +105,7 @@ def rename_file(old_name: str, new_name: str) -> str:
             return "Original file does not exist."
 
         if os.path.exists(new_path):
-            return "A file with the new name already exists."
+            return "A file with the new name.txt already exists."
 
         os.rename(old_path, new_path)
         return f"Renamed file {old_name} to {new_name}."
@@ -128,6 +127,8 @@ def write_note(note_content: str, note_name: str) -> str:
         str: Confirmation message.
     """
     try:
+        if not note_name.endswith(".txt"):
+            note_name += ".txt"
         folder_path = "src/data"
         os.makedirs(folder_path, exist_ok=True)
         file_path = os.path.join(folder_path, note_name)
@@ -151,6 +152,8 @@ def read_note(note_name: str) -> str:
         str: The note content or an error message if not found.
     """
     try:
+        if not note_name.endswith(".txt"):
+            note_name += ".txt"
         folder_path = "src/data"
         file_path = os.path.join(folder_path, note_name)
 
@@ -172,7 +175,7 @@ def download_file(file_name: str) -> str:
     Generate a link to download the file.
 
     Args:
-        file_name (str): The name of the file need download'.
+        file_name (str): The name of the file need download.
 
     Returns:
         str: A message containing a download link.
@@ -180,7 +183,7 @@ def download_file(file_name: str) -> str:
     try:
         file_path = f"src/data/{file_name}"
         if os.path.exists(file_path):
-            return f"You can download the file at the following link: [download/{file_name}]."
+            return f"[download/{file_name}]"
         else:
             return f"File {file_name} not found."
 

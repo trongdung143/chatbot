@@ -32,7 +32,7 @@ def save_upload_file_into_temp(upload_file: UploadFile):
     if not extension:
         raise HTTPException(status_code=400, detail="Unsupported file type")
 
-    save_dir = "src/agents/data/temp"
+    save_dir = "src/tools/data/temp"
     os.makedirs(save_dir, exist_ok=True)
     file_path = os.path.join(save_dir, upload_file.filename)
 

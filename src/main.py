@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from src.api import account, chat, download, home
+from src.api import chat, download, home
 from fastapi.responses import JSONResponse
 
 app = FastAPI()
@@ -41,4 +41,4 @@ async def block_malicious_requests(request: Request, call_next):
 app.include_router(chat.router)
 app.include_router(home.router)
 app.include_router(download.router)
-app.include_router(account.router)
+

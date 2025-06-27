@@ -8,9 +8,8 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_huggingface import HuggingFaceEmbeddings
 
-
 from src.utils.converter import word_to_pdf
-from src.utils.document_loader import get_content_web_by_url
+from src.utils.doc import get_content_web_by_url
 
 
 def remove_duplicate_paragraphs(text: str) -> str:
@@ -27,7 +26,7 @@ def remove_duplicate_paragraphs(text: str) -> str:
 
 async def create_vector_db_from_text(url: str) -> FAISS:
     content = ""
-    docs = get_content_web_by_url(url)
+    docs = await get_content_web_by_url(url)
     for doc in docs:
         content += doc.page_content
 
@@ -47,7 +46,10 @@ async def create_vector_db_from_text(url: str) -> FAISS:
     return db
 
 
-async def create_vector_db_from_file(file_path: str, vector_db_path: str):
+async def create_vector_db_from_file(file_path: str, file_base: str):
+    vector_db_path = f"src/tools/data/vectorstores/{file_base}"
+    if os.path.exists(vector_db_path):
+        return None
     extension = os.path.splitext(file_path)[1].lower()
     temp_pdf_created = False
 
@@ -75,8 +77,11 @@ async def create_vector_db_from_file(file_path: str, vector_db_path: str):
     if temp_pdf_created:
         os.remove(file_path)
 
+    return db
 
-async def read_vertors_db(vector_db_path: str) -> FAISS:
+
+async def read_vectorstores(file_base: str) -> FAISS:
+    vector_db_path = f"src/tools/data/vectorstores/{file_base}"
     embedding = HuggingFaceEmbeddings(
         model_name="sentence-transformers/all-MiniLM-L6-v2"
     )

@@ -175,6 +175,7 @@ body {
   background: var(--bg-primary);
   position: relative;
   scrollbar-width: thin;
+  scroll-behavior: smooth;
 }
 
 .welcome-screen {
@@ -301,6 +302,30 @@ body {
   border-radius: 0;
   padding: 0;
   border: none;
+}
+
+/* Streaming message styles */
+.message.assistant.streaming .message-content {
+  opacity: 1;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.streaming-cursor {
+  display: inline-block;
+  animation: streamingBlink 1s infinite;
+  color: var(--primary-color);
+  font-weight: bold;
+  margin-left: 1px;
+  opacity: 1;
+}
+
+@keyframes streamingBlink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
 }
 
 .chat-input {

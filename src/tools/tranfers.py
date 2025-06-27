@@ -5,7 +5,7 @@ AGENTS = {"chat", "manage", "analysis", "search", "planner", "summarizer"}
 handoff_tools = {
     name: create_handoff_tool(
         agent_name=name,
-        description=f"Pass the task to the {name} agent",
+        description=f"Pass the task to the {name} agent, ",
     )
     for name in AGENTS
 }
