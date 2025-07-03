@@ -1,16 +1,8 @@
-from typing import Any, Coroutine
-
-from langchain_core.messages import BaseMessage
-from langgraph_swarm import create_swarm
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph import StateGraph
-from src.agents.manage.manage import agent as agent1
+from langgraph_swarm import create_swarm
 from src.agents.chat.chat import agent as agent2
-from src.agents.state import State
-from src.config.setup import GOOGLE_API_KEY
-from langchain_core.messages import SystemMessage
-from langgraph.types import interrupt, Command
+from src.agents.manage.manage import agent as agent1
+
 #
 # model = ChatGoogleGenerativeAI(
 #     model="gemini-2.0-flash",
@@ -47,6 +39,6 @@ checkpointer = MemorySaver()
 # swarm = workflow.compile(checkpointer=checkpointer)
 
 
-workflow = create_swarm([agent1, agent2],default_active_agent="chat")
+workflow = create_swarm([agent1, agent2], default_active_agent="chat")
 
 swarm = workflow.compile(checkpointer=checkpointer)

@@ -14,7 +14,7 @@ from src.tools.system import *
 from src.tools.rag import *
 
 tools = [
-    # transfer_to_chat,
+    transfer_to_chat,
     get_time,
     get_weather,
     rag_web,

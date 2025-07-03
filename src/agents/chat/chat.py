@@ -12,7 +12,7 @@ from src.prompts.prompts_read import read_prompt
 from src.config.setup import GOOGLE_API_KEY
 
 tools = [
-    # transfer_to_manage,
+    transfer_to_manage,
 ]
 
 model = ChatGoogleGenerativeAI(

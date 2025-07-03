@@ -145,8 +145,6 @@ async function sendMessage() {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        hideTypingIndicator();
-
         assistantMessageElement = createMessageElement("", "assistant");
         messagesContainer.appendChild(assistantMessageElement);
         messagesContainer.scrollTop = messagesContainer.scrollHeight;
@@ -175,7 +173,7 @@ async function sendMessage() {
                         if (data.type === 'chunk' && data.content) {
                             assistantMessageContent += data.content;
                             updateMessageContent(assistantMessageElement, assistantMessageContent);
-                            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                            chatContainer.scrollTop = chatContainer.scrollHeight;
                         } else if (data.type === 'done') {
                             if (assistantMessageContent) {
                                 updateMessageContent(assistantMessageElement, assistantMessageContent);
@@ -208,6 +206,8 @@ async function sendMessage() {
 
         displayMessage("Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại.", "assistant");
     } finally {
+        hideTypingIndicator();
+        addCopyButtons();
         sendButton.disabled = false;
         sendButton.style.opacity = "1";
     }
@@ -640,42 +640,107 @@ if (window.innerWidth <= 768) {
 }
 
 function addCopyButtons() {
+
     const codeBlocks = document.querySelectorAll(".message-content pre");
+
     codeBlocks.forEach((block) => {
+
         if (block.parentElement.classList.contains("code-block-wrapper")) return;
+
         const wrapper = document.createElement("div");
         wrapper.className = "code-block-wrapper";
+
         const copyBtn = document.createElement("button");
         copyBtn.className = "copy-button";
-        copyBtn.textContent = "copy";
-        copyBtn.addEventListener("click", () => {
-            const codeText = block.textContent;
-            navigator.clipboard
-                .writeText(codeText)
-                .then(() => {
-                    copyBtn.textContent = "copied";
-                    copyBtn.classList.add("copied");
-                    setTimeout(() => {
-                        copyBtn.textContent = "copy";
-                        copyBtn.classList.remove("copied");
-                    }, 2000);
-                })
-                .catch((err) => {
-                    console.error("Lỗi khi sao chép:", err);
-                });
+        copyBtn.textContent = "Copy";
+        copyBtn.title = "Copy code to clipboard";
+
+        copyBtn.addEventListener("click", async () => {
+            try {
+                const codeText = block.querySelector('code')?.textContent || block.textContent;
+                await navigator.clipboard.writeText(codeText);
+
+
+                copyBtn.textContent = "Copied!";
+                copyBtn.classList.add("copied");
+
+                setTimeout(() => {
+                    copyBtn.textContent = "Copy";
+                    copyBtn.classList.remove("copied");
+                }, 2000);
+            } catch (err) {
+                console.error("Lỗi khi sao chép:", err);
+
+                const textArea = document.createElement("textarea");
+                textArea.value = block.textContent;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                copyBtn.textContent = "Copied!";
+                setTimeout(() => {
+                    copyBtn.textContent = "Copy";
+                }, 2000);
+            }
         });
+
+
         block.parentNode.insertBefore(wrapper, block);
         wrapper.appendChild(copyBtn);
         wrapper.appendChild(block);
     });
 }
 
+
 const originalDisplayMessage = displayMessage;
 displayMessage = function (content, sender) {
     originalDisplayMessage(content, sender);
-    addCopyButtons();
+
+    setTimeout(addCopyButtons, 100);
 };
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    addCopyButtons();
+});
+
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', addCopyButtons);
+} else {
+    addCopyButtons();
+}
+
+const observer = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+            mutation.addedNodes.forEach((node) => {
+                if (node.nodeType === 1) { // Element node
+                    // Kiểm tra xem có code blocks mới không
+                    const codeBlocks = node.querySelectorAll?.('pre') || [];
+                    if (codeBlocks.length > 0) {
+                        setTimeout(addCopyButtons, 50);
+                    }
+                }
+            });
+        }
+    });
+});
+
+
+if (messagesContainer) {
+    observer.observe(messagesContainer, {
+        childList: true,
+        subtree: true
+    });
+}
 const logOut = document.getElementById("logout-btn");
 logOut.addEventListener("click", () => {
     window.location.href = "/logout";
 });
+
+function scrollToBottom() {
+  const container = document.getElementById("messages-container");
+  container.scrollTop = container.scrollHeight;
+}
