@@ -1,13 +1,13 @@
 from langchain_core.tools import tool
 from src.utils.vectorst import *
 from langchain.prompts import PromptTemplate
-from src.agents.analysis.agent3 import create_qa_chain
+from src.agents.analysis.rag import create_qa_chain
 
 
 @tool
 async def rag_file(file_name: str, question: str) -> str:
     """
-    Answer questions using information from a PDF or Word file with the Retrieval-Augmented Generation (RAG).
+    Processes a PDF or Word file to answer questions or extract requested information using Retrieval-Augmented Generation (RAG).
 
     Args:
         file_name (str): The name.txt of the PDF file located in 'src/data/'.
@@ -48,7 +48,7 @@ async def rag_file(file_name: str, question: str) -> str:
 @tool
 async def rag_web(url: str, query: str) -> str:
     """
-    Answer questions using information from a url with the Retrieval-Augmented Generation (RAG).
+    Process a web page via URL to answer questions or extract specific information using Retrieval-Augmented Generation (RAG).
 
     Args:
         url (str): Website address to get data.

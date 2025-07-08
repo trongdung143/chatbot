@@ -2,7 +2,7 @@ from fastapi import APIRouter, Cookie, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from typing import Optional, AsyncGenerator
 import json
-from src.agents.workflow import swarm
+from src.agents.workflow import graph
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessageChunk
 from src.utils.handler import save_upload_file_into_temp
 
@@ -30,7 +30,7 @@ async def generate_chat_stream(
         }
         config = {"configurable": {"thread_id": session_id}}
 
-        async for event in swarm.astream(input_state, config=config, stream_mode="messages"):
+        async for event in graph.astream(input_state, config=config, stream_mode="messages"):
             if isinstance(event, tuple) and len(event) >= 1:
                 chunk, metadata = event[0], event[1] if len(event) > 1 else {}
 

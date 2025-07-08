@@ -13,7 +13,6 @@ model = Together(
     together_api_key=TOGETHER_API_KEY,
 )
 
-
 def create_qa_chain(vector_db: FAISS, prompt: PromptTemplate) -> RetrievalQA:
     qa_chain = RetrievalQA.from_chain_type(
         llm=model,

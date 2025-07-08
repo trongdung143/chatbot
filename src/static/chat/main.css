@@ -244,7 +244,7 @@ body {
 
 .messages-container {
     padding: 1rem;
-    max-width: 900px;
+    max-width: 800px;
     margin: 0 auto;
     width: 100%;
 }
@@ -342,7 +342,7 @@ body {
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
-    margin-bottom: 12px;
+    margin: 0 auto 12px 200px;
     font-size: 14px;
     color: var(--text-secondary);
     width: fit-content;

@@ -1,16 +1,17 @@
-import os
 import asyncio
+import os
+
 from langchain.text_splitter import (
     RecursiveCharacterTextSplitter,
     CharacterTextSplitter,
 )
-from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.vectorstores import FAISS
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+
+from src.config.setup import GOOGLE_API_KEY
 from src.utils.converter import word_to_pdf
 from src.utils.doc import get_content_web_by_url
-from src.config.setup import GOOGLE_API_KEY
 
 
 def remove_duplicate_paragraphs(text: str) -> str:
