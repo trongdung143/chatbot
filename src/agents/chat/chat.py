@@ -10,6 +10,7 @@ from src.config.setup import GOOGLE_API_KEY
 from src.tools.tranfers import transfer_to_manage
 from src.tools.rag import rag_web
 
+
 class ChatAgent:
     def __init__(self) -> None:
         self._tools: Sequence[BaseTool] = [transfer_to_manage, rag_web]
@@ -18,20 +19,12 @@ class ChatAgent:
             model="gemini-2.0-flash",
             google_api_key=GOOGLE_API_KEY,
             disable_streaming=False,
-            prompt="""
-            You are a smart AI assistant. First, try to answer questions using your internal knowledge.  
-            Only use tools in the following cases:
-            - If the question requires real-time or external information (e.g., from the web or documents) → use the 'rag_web' tool.  
-            - If the task is beyond your capabilities or requires external handling → use the 'transfer_to_manage' tool.
-
-            Always prioritize answering directly if possible. Only invoke tools when necessary, and choose the most appropriate one.
-            """
-
         ).bind_tools(self._tools)
 
         self._compiled_graph: CompiledStateGraph = self._build_graph()
 
     async def _chat(self, state: State) -> State:
+        print(f"Chatting with state: {state}")
         return {"messages": [await self._model.ainvoke(state["messages"])]}
 
     def _build_graph(self) -> CompiledStateGraph:

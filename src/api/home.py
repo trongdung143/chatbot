@@ -31,3 +31,13 @@ async def get_home_with_session(session_id: Optional[str] = Cookie(None)):
     with open("src/static/chat/index.html", "r", encoding="utf-8") as f:
         content = f.read()
     return HTMLResponse(content=content)
+
+
+@router.get("/logout", response_class=HTMLResponse)
+async def get_home_with_session(session_id: Optional[str] = Cookie(None)):
+    response = RedirectResponse(url="/", status_code=302)
+
+    if session_id:
+        response.delete_cookie("session_id")
+
+    return response

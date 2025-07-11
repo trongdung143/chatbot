@@ -12,13 +12,21 @@ from src.config.setup import GOOGLE_API_KEY
 from src.tools.tranfers import transfer_to_chat
 from src.tools.life import get_time, get_weather, get_relative_date
 from src.tools.file import (
-    save_upload_file, show_saved_file_folder,
-    remove_file, rename_file, download_file,
-    write_note, read_note
+    save_upload_file,
+    show_saved_file_folder,
+    remove_file,
+    rename_file,
+    download_file,
+    write_note,
+    read_note,
 )
 from src.tools.system import (
-    get_system_info, restart_server, open_application,
-    close_application, shutdown_system, restart_system
+    get_system_info,
+    restart_server,
+    open_application,
+    close_application,
+    shutdown_system,
+    restart_system,
 )
 from src.tools.rag import rag_web, rag_file
 
@@ -50,12 +58,13 @@ class ManageAgent:
         self._model = ChatGoogleGenerativeAI(
             model="gemini-2.0-flash",
             google_api_key=GOOGLE_API_KEY,
-            disable_streaming=False
+            disable_streaming=False,
         ).bind_tools(self._tools)
 
         self._graph = self._build_graph()
 
     async def _manage(self, state: State) -> State:
+        print(f"Managing with state: {state}")
         return {"messages": [await self._model.ainvoke(state["messages"])]}
 
     def _build_graph(self) -> CompiledStateGraph:

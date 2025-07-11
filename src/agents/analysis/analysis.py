@@ -23,19 +23,19 @@ class AnalysisAgent:
 
         self._compiled_graph: CompiledStateGraph = self._build_graph()
 
-    async def _chat(self, state: State) -> State:
+    async def _analysis(self, state: State) -> State:
         return {"messages": [await self._model.ainvoke(state["messages"])]}
 
     def _build_graph(self) -> CompiledStateGraph:
         graph = StateGraph(State)
 
-        graph.add_node("chat", self._chat)
+        graph.add_node("analysis", self._analysis)
         graph.add_node("tools", ToolNode(self._tools))
-        graph.set_entry_point("chat")
-        graph.add_conditional_edges("chat", tools_condition)
-        graph.add_edge("tools", "chat")
+        graph.set_entry_point("analysis")
+        graph.add_conditional_edges("analysis", tools_condition)
+        graph.add_edge("tools", "analysis")
 
-        return graph.compile(name="chat")
+        return graph.compile(name="analysis")
 
     def get_agent(self) -> CompiledStateGraph:
         return self._compiled_graph
