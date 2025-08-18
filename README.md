@@ -24,7 +24,7 @@ A multi-turn conversational AI assistant with natural, human-like dialogue.
 
 ```bash
 docker-compose up -d --build
-
+```
 
 ## Project Structure
 
