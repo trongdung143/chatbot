@@ -64,7 +64,16 @@ pip install -r requirements.txt
    - Create a `.env` file in the project root
    - Add your database configuration:
    ```
-   DATABASE_URL=postgresql+psycopg://user:password@host:port/database
+    TOGETHER_API_KEY=YOUR_TOGETHER_API_KEY_HERE
+    GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY_HERE
+    ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY_HERE
+    OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
+    SEARCH_ENGINE_ID=YOUR_SEARCH_ENGINE_ID_HERE
+    CLIENT_SECRET=YOUR_CLIENT_SECRET_HERE
+    CLIENT_ID=YOUR_CLIENT_ID_HERE
+    REDIRECT_URI=YOUR_REDIRECT_URI_HERE
+    TOKEN_URL=YOUR_TOKEN_URL_HERE
+    USERINFO_URL=YOUR_USERINFO_URL_HERE
    ```
 
 5. Initialize the database:
@@ -152,7 +161,3 @@ The `src/config/system/` directory contains useful scripts for:
 3. Commit your changes
 4. Push to the branch
 5. Create a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
