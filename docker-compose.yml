@@ -4,15 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: ai_api
-    image: ai-myapi:latest    
+    image: ai-myapi:latest
     environment:
-      - PYTHONUNBUFFERED=1   
+      - PYTHONUNBUFFERED=1
     expose:
       - "8080"
     volumes:
       - .:/app
     networks:
-      - chatbox
+      - chatbot
 
   nginx:
     image: nginx:latest
@@ -24,8 +24,8 @@ services:
     depends_on:
       - ai_api
     networks:
-      - chatbox
+      - chatbot
 
 networks:
-  chatbox:
+  chatbot:
     driver: bridge

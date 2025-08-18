@@ -8,18 +8,21 @@ router = APIRouter()
 
 @router.get("/", response_class=HTMLResponse)
 async def get_home(session_id: Optional[str] = Cookie(None)):
+    with open("src/static/chat/index.html", "r", encoding="utf-8") as f:
+        content = f.read()
+
     if not session_id:
         new_session_id = str(uuid.uuid4())
 
-        with open("src/static/chat/index.html", "r", encoding="utf-8") as f:
-            content = f.read()
-
         response = HTMLResponse(content=content)
-        response.set_cookie(key="session_id", value=new_session_id, httponly=True)
+        response.set_cookie(
+            key="session_id",
+            value=new_session_id,
+            httponly=True,
+            max_age=60 * 60 * 24 * 7,
+        )
         return response
 
-    with open("src/static/chat/index.html", "r", encoding="utf-8") as f:
-        content = f.read()
     return HTMLResponse(content=content)
 
 

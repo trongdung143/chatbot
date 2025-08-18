@@ -64,7 +64,6 @@ class ManageAgent:
         self._graph = self._build_graph()
 
     async def _manage(self, state: State) -> State:
-        print(f"Managing with state: {state}")
         return {"messages": [await self._model.ainvoke(state["messages"])]}
 
     def _build_graph(self) -> CompiledStateGraph:

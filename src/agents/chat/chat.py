@@ -24,7 +24,6 @@ class ChatAgent:
         self._compiled_graph: CompiledStateGraph = self._build_graph()
 
     async def _chat(self, state: State) -> State:
-        print(f"Chatting with state: {state}")
         return {"messages": [await self._model.ainvoke(state["messages"])]}
 
     def _build_graph(self) -> CompiledStateGraph:
