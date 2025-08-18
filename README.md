@@ -1,6 +1,30 @@
 # AI Chatbot Project
 
-A sophisticated chatbot system built with Python, featuring document analysis, RAG (Retrieval-Augmented Generation), and conversation management capabilities.
+A multi-turn conversational AI assistant with natural, human-like dialogue.
+
+## Features
+
+- **LLM Interaction:** Uses LangChain’s MCP to execute tasks via Gmail API, Google Drive, and local files.
+- **Long-Term Memory:** Stores conversation history and multi-session context in Supabase (PostgreSQL).
+- **Autonomous Tool Orchestration:** Utilizes LangGraph to perform actions based on user intent.
+- **Seamless Task Automation:** Smoothly integrates conversational AI with automated actions.
+
+## Tech Stack
+
+- Python, FastAPI
+- LangChain, LangGraph
+- PostgreSQL (Supabase)
+- Gmail API, Google Drive API
+- TensorFlow, Sentence Transformers, FAISS
+
+## Setup
+
+1. Copy `.env.example` to `.env` and fill in your API keys.
+2. Build and run Docker containers:
+
+```bash
+docker-compose up -d --build
+
 
 ## Project Structure
 
