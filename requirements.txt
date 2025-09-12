@@ -24,3 +24,4 @@ tf-keras
 uvicorn
 requests
 ipython
+aiofiles

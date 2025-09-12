@@ -1,4 +1,4 @@
-# AI Chatbot Project
+# Multi-agent with LangGraph
 
 A multi-turn conversational AI assistant with natural, human-like dialogue.
 

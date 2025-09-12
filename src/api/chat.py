@@ -58,7 +58,7 @@ async def generate_chat_stream(
 
 @router.post("/chat")
 async def chatbot_stream(
-    message: str = Form(...),
+    message: str = Form(""),
     file: Optional[UploadFile] = File(None),
     session_id: Optional[str] = Cookie(None),
 ) -> StreamingResponse:
@@ -70,5 +70,6 @@ async def chatbot_stream(
             "Connection": "keep-alive",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Headers": "*",
+            "X-Accel-Buffering": "no",
         },
     )

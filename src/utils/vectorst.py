@@ -53,6 +53,7 @@ async def create_vector_db_from_file(file_path: str, file_base: str):
     vector_db_path = f"src/tools/data/vectorstores/{file_base}"
     if os.path.exists(vector_db_path):
         return None
+
     extension = os.path.splitext(file_path)[1].lower()
     temp_pdf_created = False
 

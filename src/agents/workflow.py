@@ -24,16 +24,12 @@ class Workflow:
         self._app = self._build_app()
 
     def _load_agents(self) -> Sequence[CompiledStateGraph]:
-        return [
-            ChatAgent().get_agent(),
-            ManageAgent().get_agent()
-        ]
+        return [ChatAgent().get_agent(), ManageAgent().get_agent()]
 
     def _build_app(self) -> CompiledStateGraph:
-        return create_swarm(
-            self._agents,
-            default_active_agent="chat"
-        ).compile(checkpointer=self._checkpointer)
+        return create_swarm(self._agents, default_active_agent="chat").compile(
+            checkpointer=self._checkpointer
+        )
 
     def get_agents(self) -> Sequence[CompiledStateGraph]:
         return self._agents

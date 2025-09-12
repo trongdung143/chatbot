@@ -3,17 +3,18 @@ from langchain_core.tools import tool
 import shutil
 import glob
 
+
 @tool
 def save_upload_file(old_name: str, new_name: str | None) -> str:
     """
-    Save a file for the user, optionally with a new name.txt, while preserving the extension of the old file.
+    Saves the file for the user, optionally with a new filename, while keeping the old file extension.
 
     Args:
-        old_name (str): The original file name.txt.
-        new_name (str, None): The new name.txt to save the file. If not provided, the original name.txt will be used.
+        old_name(str): The original file.
+        new_name(str, None): The new name to save the file to. If not provided, the original filename is used.
 
     Returns:
-        str: Message indicating the result of the save operation.
+        str: A message indicating the result of the save operation.
     """
     try:
         temp_path = f"src/tools/data/temp/{old_name}"
