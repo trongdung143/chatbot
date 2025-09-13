@@ -1,42 +1,37 @@
-from typing import Sequence
-from langchain_google_genai import ChatGoogleGenerativeAI
 from langgraph.checkpoint.memory import MemorySaver
-from langgraph.graph.state import CompiledStateGraph, StateGraph
-from langgraph_swarm import create_swarm
+from langgraph.graph.state import StateGraph
+from src.agents.analysis import AnalysisAgent
+from src.agents.writer import WriterAgent
+from src.agents.supervisor import SupervisorAgent
+from src.agents.state import State
+from src.agents.logic import LogicAgent
 
-from src.agents.chat.chat import ChatAgent
-from src.agents.manage.manage import ManageAgent
-from src.config.setup import GOOGLE_API_KEY
+app = StateGraph(State)
 
-
-class Workflow:
-    def __init__(self) -> None:
-        self._checkpointer = MemorySaver()
-
-        self._router_model = ChatGoogleGenerativeAI(
-            model="gemini-2.0-flash",
-            google_api_key=GOOGLE_API_KEY,
-            disable_streaming=False,
-        )
-
-        self._agents: Sequence[CompiledStateGraph] = self._load_agents()
-
-        self._app = self._build_app()
-
-    def _load_agents(self) -> Sequence[CompiledStateGraph]:
-        return [ChatAgent().get_agent(), ManageAgent().get_agent()]
-
-    def _build_app(self) -> CompiledStateGraph:
-        return create_swarm(self._agents, default_active_agent="chat").compile(
-            checkpointer=self._checkpointer
-        )
-
-    def get_agents(self) -> Sequence[CompiledStateGraph]:
-        return self._agents
-
-    def get_app(self) -> CompiledStateGraph:
-        return self._app
+supervisor = SupervisorAgent()
+analysis = AnalysisAgent()
+writer = WriterAgent()
+logic = LogicAgent()
 
 
-app = Workflow()
-graph = app.get_app()
+def route(state: State) -> str:
+    if state["next_agent"] in "analysis":
+        return "analysis"
+    elif state["next_agent"] in "writer":
+        return "writer"
+
+
+app.add_node("supervisor", supervisor.get_builder().compile())
+app.add_node("analysis", analysis.get_builder().compile())
+app.add_node("writer", writer.get_builder().compile())
+app.add_node("logic", logic.get_builder().compile())
+
+app.set_entry_point("supervisor")
+app.add_conditional_edges(
+    "supervisor", route, {"analysis": "analysis", "writer": "writer"}
+)
+app.add_edge("analysis", "logic")
+app.add_edge("logic", "writer")
+app.set_finish_point("writer")
+
+graph = app.compile(checkpointer=MemorySaver())

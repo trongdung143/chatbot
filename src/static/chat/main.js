@@ -267,9 +267,8 @@ function formatMessage(text) {
     const placeholder = `CODEBLOCK${Math.random()
       .toString(36)
       .substr(2, 9)}PLACEHOLDER`;
-    const codeBlock = `<pre><code class="language-${
-      lang || "text"
-    }">${code.trim()}</code></pre>`;
+    const codeBlock = `<pre><code class="language-${lang || "text"
+      }">${code.trim()}</code></pre>`;
     codeBlocks[placeholder] = codeBlock;
     return placeholder;
   });
@@ -484,25 +483,32 @@ function formatTables(text) {
   return result.join("\n");
 }
 
+function decodeHtmlEntities(s) {
+  const map = { "&amp;": "&", "&lt;": "<", "&gt;": ">", "&quot;": '"', "&#39;": "'" };
+  return s.replace(/&(amp|lt|gt|quot|#39);/g, m => map[m]);
+}
+
+
 function renderMath(text) {
-  if (typeof katex !== "undefined") {
-    text = text.replace(/\$\$([^$]+)\$\$/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { displayMode: true });
-      } catch (e) {
-        console.warn("KaTeX render error:", e);
-        return `<span class="math-error">${escapeHtml(math.trim())}</span>`;
-      }
-    });
-    text = text.replace(/\$([^$]+)\$/g, (match, math) => {
-      try {
-        return katex.renderToString(math.trim(), { displayMode: false });
-      } catch (e) {
-        console.warn("KaTeX render error:", e);
-        return `<span class="math-error">${escapeHtml(math.trim())}</span>`;
-      }
-    });
-  }
+  if (typeof katex === "undefined") return text;
+
+  const safeRender = (math, displayMode) => {
+    try {
+      return katex.renderToString(decodeHtmlEntities(math.trim()), { displayMode });
+    } catch (e) {
+      console.warn("KaTeX render error:", e);
+      return `<span class="math-error">${escapeHtml(math.trim())}</span>`;
+    }
+  };
+
+  text = text.replace(/\$\$([\s\S]+?)\$\$/g, (_, math) => safeRender(math, true));
+
+  text = text.replace(/\\\[([\s\S]+?)\\\]/g, (_, math) => safeRender(math, true));
+
+  text = text.replace(/\\\(([\s\S]+?)\\\)/g, (_, math) => safeRender(math, false));
+
+  text = text.replace(/(?<!\$)\$([^$\n]+?)\$(?!\$)/g, (_, math) => safeRender(math, false));
+
   return text;
 }
 

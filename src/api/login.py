@@ -3,7 +3,6 @@
 # import requests, uuid
 # from src.config.setup import REDIRECT_URI, GOOGLE_CLIENT_SECRET, GOOGLE_CLIENT_ID
 # from sqlalchemy.orm import Session
-# from src.database.db import create_user
 
 # router = APIRouter()
 

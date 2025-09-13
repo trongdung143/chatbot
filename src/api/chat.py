@@ -17,39 +17,67 @@ async def generate_chat_stream(
             save_upload_file_into_temp(file)
 
         input_state = {
-            "messages": [
-                SystemMessage(
-                    "If the request exceeds your capabilities, automatically transfer to another agent that can handle it without asking the user (use transfer_to_<agent>)."
-                ),
-                SystemMessage("Always respond in Vietnamese."),
-                SystemMessage(
-                    "You have memory capabilities and can remember previous context."
-                ),
-                SystemMessage(
-                    "Use only your pre-trained knowledge to answer the user's question. If you do not have enough information, do not guess — transfer to a more capable agent instead."
-                ),
-                HumanMessage(content=message),
+            "messages": [HumanMessage(content=message)],
+            "thread_id": session_id,
+            "agent_logs": [
+                {
+                    "agent_name": "supervisor",
+                    "task": None,
+                    "result": None,
+                    "start_time": None,
+                    "end_time": None,
+                    "duration": None,
+                }
             ],
+            "next_agent": None,
+            "prev_agent": None,
+            "task": "",
         }
 
         config = {"configurable": {"thread_id": session_id}}
 
-        async for event in graph.astream(
-            input_state, config=config, stream_mode="messages"
-        ):
-            if isinstance(event, tuple) and len(event) >= 1:
-                chunk, metadata = event[0], event[1] if len(event) > 1 else {}
+        check = set()
+        logs = []
 
-                if isinstance(chunk, AIMessageChunk) and chunk.content:
-                    data = {
-                        "type": "chunk",
-                        "content": chunk.content,
-                        "node": metadata.get("langgraph_node", "unknown"),
-                        "step": metadata.get("langgraph_step", 0),
-                    }
-                    yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+        async for event in graph.astream(
+            input=input_state, config=config, stream_mode=["messages", "updates"]
+        ):
+            data_type, payload = event
+            if data_type == "updates":
+                if not logs:
+                    logs.append(payload)
+                else:
+                    last = list(logs[-1].values())[0]["agent_logs"]
+                    current = list(payload.values())[0]["agent_logs"]
+                    if last != current:
+                        logs.append(payload)
+
+            if data_type == "messages":
+                msg, meta = payload
+                agent = meta.get("langgraph_node", "unknown")
+
+                if "NO_MATH" in msg.content:
+                    continue
+
+                if agent != "supervisor":
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
+
+            elif data_type == "error":
+                yield f"data: {json.dumps({'type': 'error', 'message': str(payload)}, ensure_ascii=False)}\n\n"
+
+        for state in logs:
+            for key in state:
+                current_state = state[key]
+                for log in current_state.get("agent_logs", []):
+                    name = log.get("agent_name")
+                    duration = log.get("duration")
+                    if name and duration is not None:
+                        yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n\n**{name.upper()}**   {duration:.2f}s'}, ensure_ascii=False)}\n\n"
 
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
+
+    except Exception as e:
+        yield f"data: {json.dumps({'type': 'error', 'message': str(e)}, ensure_ascii=False)}\n\n"
 
     except Exception as e:
         error_data = {"type": "error", "message": str(e)}
