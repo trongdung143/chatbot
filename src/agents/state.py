@@ -1,6 +1,7 @@
 from langgraph.graph import MessagesState
 from typing import TypedDict
 from pydantic import Field
+import json
 
 
 class AgentLog(TypedDict):
@@ -18,3 +19,4 @@ class State(MessagesState):
     next_agent: str
     prev_agent: str
     task: str
+    human: bool

@@ -21,7 +21,7 @@ async def generate_chat_stream(
             "thread_id": session_id,
             "agent_logs": [
                 {
-                    "agent_name": "supervisor",
+                    "agent_name": "assigner",
                     "task": None,
                     "result": None,
                     "start_time": None,
@@ -31,13 +31,11 @@ async def generate_chat_stream(
             ],
             "next_agent": None,
             "prev_agent": None,
-            "task": "",
+            "task": None,
+            "human": None,
         }
 
         config = {"configurable": {"thread_id": session_id}}
-
-        # check = set()
-        # logs = []
 
         async for event in graph.astream(
             input=input_state,
@@ -47,12 +45,16 @@ async def generate_chat_stream(
         ):
             data_type, payload = event
             if data_type == "updates":
-                _, state_data = next(reversed(payload.items()))
+                type, state_data = next(reversed(payload.items()))
+
+                if type == "__interrupt__":
+                    yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
+
                 last_log = state_data["agent_logs"][-1]
                 agent_name = last_log["agent_name"]
                 duration = last_log["duration"]
                 if agent_name != "assigner":
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅ {agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅{agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
                 # if not logs:
                 #     logs.append(payload)
                 # else:

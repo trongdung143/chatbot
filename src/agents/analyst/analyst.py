@@ -31,8 +31,7 @@ class AnalystAgent(BaseAgent):
         task_msg = HumanMessage(content=state["task"])
 
         response = await self._chain.ainvoke({"task": [task_msg]})
-        analysis_result = response.content
-
+        content, human = super().response_filter(response.content)
         end_time = time()
         duration = end_time - start_time
 
@@ -40,7 +39,7 @@ class AnalystAgent(BaseAgent):
             {
                 "agent_name": "analyst",
                 "task": state["task"],
-                "result": analysis_result,
+                "result": content,
                 "step": len(state["agent_logs"]),
                 "start_time": start_time,
                 "end_time": end_time,
@@ -48,8 +47,9 @@ class AnalystAgent(BaseAgent):
             }
         )
 
-        state["task"] = analysis_result
+        state["task"] = content
         state["prev_agent"] = "analyst"
         state["next_agent"] = "calculator"
+        state["human"] = human
 
         return state

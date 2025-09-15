@@ -4,8 +4,8 @@ from time import time
 from langchain_core.tools.base import BaseTool
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
-from src.agents.state import State
 from src.agents.writer.prompt import prompt
+from src.agents.state import State
 
 
 class WriterAgent(BaseAgent):
@@ -56,5 +56,6 @@ class WriterAgent(BaseAgent):
 
         state["prev_agent"] = "writer"
         state["next_agent"] = None
+        state["human"] = False
 
         return {"messages": [response]}

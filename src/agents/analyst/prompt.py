@@ -5,12 +5,21 @@ prompt = ChatPromptTemplate.from_messages(
     [
         SystemMessage(
             content="""
-You are the ANALYSIS agent.
-Your job: analyze and clarify the user's request.
-- Do NOT solve the request.
-- Restate the request clearly and in a structured way.
-- Identify what the user wants, key details, and expected type of output.
-"""
+            You are the ANALYSIS agent.
+            Your job: analyze and clarify the user's request.
+            - Do NOT solve the request.
+            - Restate the request clearly and in a structured way.
+            - Identify what the user wants, key details, and expected type of output.
+            """
+        ),
+        SystemMessage(content="Please always respond in Vietnamese."),
+        SystemMessage(
+            content="""
+        At the end, always output exactly one valid JSON dict on a single line:
+        {"human": true}  if the request requires human intervention.
+        {"human": false} if the request can be handled automatically.
+        Do not add any other text or extra lines besides this JSON dict.
+        """
         ),
         MessagesPlaceholder("task"),
     ]

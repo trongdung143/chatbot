@@ -46,4 +46,5 @@ class AssignerAgent(BaseAgent):
                 "duration": duration,
             }
         )
+        state["human"] = False
         return state

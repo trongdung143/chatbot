@@ -5,6 +5,8 @@ from src.config.setup import GOOGLE_API_KEY
 from src.agents.state import State
 from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
+import json
+from src.agents.human import human_node
 
 
 class BaseAgent:
@@ -26,20 +28,32 @@ class BaseAgent:
     async def process(self, state: State) -> State:
         return state
 
-    def get_builded(self) -> StateGraph:
+    def response_filter(self, content: str):
+        lines = content.strip().splitlines()
+        last_line = lines[-1].strip()
+
+        human_dict = json.loads(last_line.lower())
+        clean_content = "\n".join(lines[:-1]).strip()
+        return (clean_content, human_dict["human"])
+
+    def get_graph(self) -> StateGraph:
         graph = StateGraph(State)
         graph.add_node(self._agent_name, self.process)
+        graph.add_node("human_node", human_node)
 
         if self._tools:
             graph.add_node("tools", ToolNode(self._tools))
             graph.add_conditional_edges(
-                self._agent_name, tools_condition, {"tools": "tools", "__end__": "END"}
+                self._agent_name,
+                tools_condition,
+                {"tools": "tools", "__end__": "END"},
             )
             graph.add_edge("tools", self._agent_name)
         else:
-            pass
+            graph.add_edge(self._agent_name, "human_node")
 
         graph.set_entry_point(self._agent_name)
+        # graph.set_finish_point("human_node")
         return graph.compile(name=self._agent_name)
 
     # def log_run(self, state: State, task: str, result: str, start: float, end: float):

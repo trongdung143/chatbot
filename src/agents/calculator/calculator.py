@@ -26,7 +26,8 @@ class CalculatorAgent(BaseAgent):
 
         task_msg = HumanMessage(content=state["task"])
         response = await self._chain.ainvoke({"task": [task_msg]})
-        logic_result = response.content.strip() if response.content else ""
+        content, human = super().response_filter(response.content)
+        logic_result = content.strip() if content else ""
 
         end_time = time()
         duration = end_time - start_time
@@ -48,5 +49,5 @@ class CalculatorAgent(BaseAgent):
         state["task"] = final_task
         state["prev_agent"] = "calculator"
         state["next_agent"] = "writer"
-
+        state["human"] = human
         return state

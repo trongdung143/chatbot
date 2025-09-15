@@ -21,11 +21,11 @@ def route(state: State) -> str:
         return "writer"
 
 
-app.add_node("assigner", supervisor.get_builded())
-app.add_node("analyst", analysis.get_builded())
-app.add_node("writer", writer.get_builded())
+app.add_node("assigner", supervisor.get_graph())
+app.add_node("analyst", analysis.get_graph())
+app.add_node("writer", writer.get_graph())
 
-app.add_node("calculator", logic.get_builded())
+app.add_node("calculator", logic.get_graph())
 
 app.set_entry_point("assigner")
 app.add_conditional_edges("assigner", route, {"analyst": "analyst", "writer": "writer"})
