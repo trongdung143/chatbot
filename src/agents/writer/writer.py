@@ -6,13 +6,14 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.writer.prompt import prompt
 from src.agents.state import State
+from src.tools.life import get_relative_date, get_time
 
 
 class WriterAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="writer",
-            tools=tools or [],
+            tools=[get_relative_date, get_time],
             model=None,
         )
 

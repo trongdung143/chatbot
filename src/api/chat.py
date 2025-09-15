@@ -5,6 +5,7 @@ import json
 from src.agents.workflow import graph
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessageChunk
 from src.utils.handler import save_upload_file_into_temp
+from langgraph.types import Command
 
 router = APIRouter()
 
@@ -19,16 +20,7 @@ async def generate_chat_stream(
         input_state = {
             "messages": [HumanMessage(content=message)],
             "thread_id": session_id,
-            "agent_logs": [
-                {
-                    "agent_name": "assigner",
-                    "task": None,
-                    "result": None,
-                    "start_time": None,
-                    "end_time": None,
-                    "duration": None,
-                }
-            ],
+            "agent_logs": [],
             "next_agent": None,
             "prev_agent": None,
             "task": None,
@@ -37,6 +29,9 @@ async def generate_chat_stream(
 
         config = {"configurable": {"thread_id": session_id}}
 
+        interrupt = graph.get_state(config=config).interrupts
+        if interrupt:
+            input_state = Command(resume=message)
         async for event in graph.astream(
             input=input_state,
             config=config,

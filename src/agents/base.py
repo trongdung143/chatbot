@@ -33,7 +33,7 @@ class BaseAgent:
         last_line = lines[-1].strip()
 
         human_dict = json.loads(last_line.lower())
-        clean_content = "\n".join(lines[:-1]).strip()
+        clean_content = "".join(lines[:-1]).strip()
         return (clean_content, human_dict["human"])
 
     def get_graph(self) -> StateGraph:
@@ -46,14 +46,14 @@ class BaseAgent:
             graph.add_conditional_edges(
                 self._agent_name,
                 tools_condition,
-                {"tools": "tools", "__end__": "END"},
+                {"tools": "tools", "__end__": "human_node"},
             )
             graph.add_edge("tools", self._agent_name)
         else:
             graph.add_edge(self._agent_name, "human_node")
 
         graph.set_entry_point(self._agent_name)
-        # graph.set_finish_point("human_node")
+        graph.set_finish_point("human_node")
         return graph.compile(name=self._agent_name)
 
     # def log_run(self, state: State, task: str, result: str, start: float, end: float):
