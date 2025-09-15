@@ -26,29 +26,31 @@ class BaseAgent:
     async def process(self, state: State) -> State:
         return state
 
-    def get_builder(self) -> StateGraph:
+    def get_builded(self) -> StateGraph:
         graph = StateGraph(State)
         graph.add_node(self._agent_name, self.process)
 
         if self._tools:
             graph.add_node("tools", ToolNode(self._tools))
-            graph.add_conditional_edges(self._agent_name, tools_condition)
+            graph.add_conditional_edges(
+                self._agent_name, tools_condition, {"tools": "tools", "__end__": "END"}
+            )
             graph.add_edge("tools", self._agent_name)
         else:
             pass
 
         graph.set_entry_point(self._agent_name)
-        return graph
+        return graph.compile(name=self._agent_name)
 
-    def log_run(self, state: State, task: str, result: str, start: float, end: float):
-        state["agent_logs"].append(
-            {
-                "agent_name": self._agent_name,
-                "task": task,
-                "result": result,
-                "step": len(state["agent_logs"]) + 1,
-                "start_time": start,
-                "end_time": end,
-                "duration": end - start,
-            }
-        )
+    # def log_run(self, state: State, task: str, result: str, start: float, end: float):
+    #     state["agent_logs"].append(
+    #         {
+    #             "agent_name": self._agent_name,
+    #             "task": task,
+    #             "result": result,
+    #             "step": len(state["agent_logs"]) + 1,
+    #             "start_time": start,
+    #             "end_time": end,
+    #             "duration": end - start,
+    #         }
+    #     )

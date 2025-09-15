@@ -1,37 +1,36 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.state import StateGraph
-from src.agents.analysis import AnalysisAgent
-from src.agents.writer import WriterAgent
-from src.agents.supervisor import SupervisorAgent
+from src.agents.analyst.analyst import AnalystAgent
+from src.agents.writer.writer import WriterAgent
+from src.agents.assigner.assigner import AssignerAgent
 from src.agents.state import State
-from src.agents.logic import LogicAgent
+from src.agents.calculator.calculator import CalculatorAgent
 
 app = StateGraph(State)
 
-supervisor = SupervisorAgent()
-analysis = AnalysisAgent()
+supervisor = AssignerAgent()
+analysis = AnalystAgent()
 writer = WriterAgent()
-logic = LogicAgent()
+logic = CalculatorAgent()
 
 
 def route(state: State) -> str:
-    if state["next_agent"] in "analysis":
-        return "analysis"
+    if state["next_agent"] in "analyst":
+        return "analyst"
     elif state["next_agent"] in "writer":
         return "writer"
 
 
-app.add_node("supervisor", supervisor.get_builder().compile())
-app.add_node("analysis", analysis.get_builder().compile())
-app.add_node("writer", writer.get_builder().compile())
-app.add_node("logic", logic.get_builder().compile())
+app.add_node("assigner", supervisor.get_builded())
+app.add_node("analyst", analysis.get_builded())
+app.add_node("writer", writer.get_builded())
 
-app.set_entry_point("supervisor")
-app.add_conditional_edges(
-    "supervisor", route, {"analysis": "analysis", "writer": "writer"}
-)
-app.add_edge("analysis", "logic")
-app.add_edge("logic", "writer")
+app.add_node("calculator", logic.get_builded())
+
+app.set_entry_point("assigner")
+app.add_conditional_edges("assigner", route, {"analyst": "analyst", "writer": "writer"})
+app.add_edge("analyst", "calculator")
+app.add_edge("calculator", "writer")
 app.set_finish_point("writer")
 
 graph = app.compile(checkpointer=MemorySaver())

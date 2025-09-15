@@ -1,11 +1,11 @@
 from typing import Sequence
 from time import time
 
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
+from src.agents.writer.prompt import prompt
 
 
 class WriterAgent(BaseAgent):
@@ -16,18 +16,7 @@ class WriterAgent(BaseAgent):
             model=None,
         )
 
-        self._prompt = ChatPromptTemplate.from_messages(
-            [
-                SystemMessage(
-                    content="""  
-                    You are the WRITER agent.
-                    You should use the results from the previous agent's step and continue processing.
-                    Your job: respond naturally and helpfully, based on the prior analysis or direct user message.
-                """
-                ),
-                MessagesPlaceholder("task"),
-            ]
-        )
+        self._prompt = prompt
 
         self._chain = self._prompt | self._model
 
@@ -36,7 +25,18 @@ class WriterAgent(BaseAgent):
 
         task_msg = HumanMessage(content=state["task"])
 
-        response = await self._chain.ainvoke({"task": state["messages"] + [task_msg]})
+        if state["prev_agent"] == "assigner":
+            response = await self._chain.ainvoke(
+                {"task": state["messages"] + [task_msg]}
+            )
+        else:
+            annotated_msg = SystemMessage(
+                content=f"NOTE: The following is the result from the {state["prev_agent"]} agent, not the user.\n"
+            )
+            response = await self._chain.ainvoke(
+                {"task": state["messages"] + [annotated_msg, task_msg]}
+            )
+
         writer_result = response.content
 
         end_time = time()

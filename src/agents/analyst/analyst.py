@@ -7,30 +7,22 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
 from src.agents.base import BaseAgent
 from src.agents.state import State
+from src.agents.analyst.prompt import prompt
 
 
-class AnalysisAgent(BaseAgent):
+class AnalystResponse:
+    pass
+
+
+class AnalystAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
-            agent_name="analysis",
+            agent_name="analyst",
             tools=tools or [],
             model=None,
         )
 
-        self._prompt = ChatPromptTemplate.from_messages(
-            [
-                SystemMessage(
-                    content="""
-                You are the ANALYSIS agent.
-                Your task: analyze the user's request only.
-                Be concise, structured, and focus on reasoning or problem-solving steps.
-                Do not generate the final answer or solution — only break down the request into what needs to be done.
-                """
-                ),
-                MessagesPlaceholder("task"),
-            ]
-        )
-
+        self._prompt = prompt
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
@@ -46,7 +38,7 @@ class AnalysisAgent(BaseAgent):
 
         state["agent_logs"].append(
             {
-                "agent_name": "analysis",
+                "agent_name": "analyst",
                 "task": state["task"],
                 "result": analysis_result,
                 "step": len(state["agent_logs"]),
@@ -57,7 +49,7 @@ class AnalysisAgent(BaseAgent):
         )
 
         state["task"] = analysis_result
-        state["prev_agent"] = "analysis"
-        state["next_agent"] = "logic"
+        state["prev_agent"] = "analyst"
+        state["next_agent"] = "calculator"
 
         return state

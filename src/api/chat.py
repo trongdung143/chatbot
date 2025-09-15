@@ -36,43 +36,48 @@ async def generate_chat_stream(
 
         config = {"configurable": {"thread_id": session_id}}
 
-        check = set()
-        logs = []
+        # check = set()
+        # logs = []
 
         async for event in graph.astream(
-            input=input_state, config=config, stream_mode=["messages", "updates"]
+            input=input_state,
+            config=config,
+            stream_mode=["messages", "updates"],
+            subgraphs=False,
         ):
             data_type, payload = event
             if data_type == "updates":
-                if not logs:
-                    logs.append(payload)
-                else:
-                    last = list(logs[-1].values())[0]["agent_logs"]
-                    current = list(payload.values())[0]["agent_logs"]
-                    if last != current:
-                        logs.append(payload)
+                _, state_data = next(reversed(payload.items()))
+                last_log = state_data["agent_logs"][-1]
+                agent_name = last_log["agent_name"]
+                duration = last_log["duration"]
+                if agent_name != "assigner":
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅ {agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
+                # if not logs:
+                #     logs.append(payload)
+                # else:
+                #     last = list(logs[-1].values())[0]["agent_logs"]
+                #     current = list(payload.values())[0]["agent_logs"]
+                #     if last != current:
+                #         logs.append(payload)
 
-            if data_type == "messages":
+            elif data_type == "messages":
                 msg, meta = payload
                 agent = meta.get("langgraph_node", "unknown")
-
-                if "NO_MATH" in msg.content:
-                    continue
-
-                if agent != "supervisor":
+                if agent == "writer":
                     yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
 
             elif data_type == "error":
                 yield f"data: {json.dumps({'type': 'error', 'message': str(payload)}, ensure_ascii=False)}\n\n"
 
-        for state in logs:
-            for key in state:
-                current_state = state[key]
-                for log in current_state.get("agent_logs", []):
-                    name = log.get("agent_name")
-                    duration = log.get("duration")
-                    if name and duration is not None:
-                        yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n\n**{name.upper()}**   {duration:.2f}s'}, ensure_ascii=False)}\n\n"
+        # for state in logs:
+        #     for key in state:
+        #         current_state = state[key]
+        #         for log in current_state.get("agent_logs", []):
+        #             name = log.get("agent_name")
+        #             duration = log.get("duration")
+        #             if name and duration is not None:
+        #                 yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n\n**{name.upper()}**   {duration:.2f}s'}, ensure_ascii=False)}\n\n"
 
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
 
