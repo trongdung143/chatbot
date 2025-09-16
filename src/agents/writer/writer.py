@@ -6,14 +6,13 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.writer.prompt import prompt
 from src.agents.state import State
-from src.tools.life import get_relative_date, get_time
 
 
 class WriterAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="writer",
-            tools=[get_relative_date, get_time],
+            tools=tools,
             model=None,
         )
 
@@ -22,6 +21,7 @@ class WriterAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
+        print("writer")
         start_time = time()
 
         if state["prev_agent"] == "assigner":
@@ -36,7 +36,7 @@ class WriterAgent(BaseAgent):
                     + [annotated_msg, HumanMessage(content=state["task"])]
                 }
             )
-
+        print(response.content)
         end_time = time()
 
         state.update(

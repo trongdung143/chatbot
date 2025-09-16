@@ -13,7 +13,7 @@ class AssignerAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="assigner",
-            tools=tools or [],
+            tools=tools,
             model=None,
         )
 
@@ -22,9 +22,11 @@ class AssignerAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
+        print("assigner")
         message = state.get("messages")[-1]
         start_time = time()
         response = await self._chain.ainvoke({"assignment": state["messages"]})
+        print(response.content)
         end_time = time()
         state.update(
             agent_logs=state.get("agent_logs", [])

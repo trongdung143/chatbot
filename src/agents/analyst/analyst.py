@@ -18,7 +18,7 @@ class AnalystAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="analyst",
-            tools=tools or [],
+            tools=tools,
             model=None,
         )
 
@@ -26,10 +26,12 @@ class AnalystAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
+        print("analyst")
         start_time = time()
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state["task"])]}
         )
+        print(response.content)
         end_time = time()
 
         state.update(
@@ -47,6 +49,6 @@ class AnalystAgent(BaseAgent):
             next_agent=None,
             prev_agent="analyst",
             task=response.content,
-            human=False,
+            human=True,
         )
         return state

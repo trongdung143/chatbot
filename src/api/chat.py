@@ -39,30 +39,29 @@ async def generate_chat_stream(
             subgraphs=False,
         ):
             data_type, payload = event
-            if data_type == "updates":
-                type, state_data = next(reversed(payload.items()))
+            # if data_type == "updates":
+            #     type, state_data = next(reversed(payload.items()))
 
-                if type == "__interrupt__":
-                    continue
-                    # yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
+            #     if type == "__interrupt__":
+            #         yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
 
-                last_log = state_data["agent_logs"][-1]
-                agent_name = last_log["agent_name"]
-                duration = last_log["duration"]
-                if agent_name != "assigner":
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅{agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
-                # if not logs:
-                #     logs.append(payload)
-                # else:
-                #     last = list(logs[-1].values())[0]["agent_logs"]
-                #     current = list(payload.values())[0]["agent_logs"]
-                #     if last != current:
-                #         logs.append(payload)
+            #     last_log = state_data["agent_logs"][-1]
+            #     agent_name = last_log["agent_name"]
+            #     duration = last_log["duration"]
+            #     if agent_name not in ["assigner", "supervisor"]:
+            #         yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅{agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
+            # if not logs:
+            #     logs.append(payload)
+            # else:
+            #     last = list(logs[-1].values())[0]["agent_logs"]
+            #     current = list(payload.values())[0]["agent_logs"]
+            #     if last != current:
+            #         logs.append(payload)
 
-            elif data_type == "messages":
+            if data_type == "messages":
                 msg, meta = payload
                 agent = meta.get("langgraph_node", "unknown")
-                if agent == "assigner" or agent == "supervisor":
+                if agent not in ["writer", "analyst"]:
                     continue
                 yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
 
