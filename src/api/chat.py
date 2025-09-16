@@ -43,7 +43,8 @@ async def generate_chat_stream(
                 type, state_data = next(reversed(payload.items()))
 
                 if type == "__interrupt__":
-                    yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
+                    continue
+                    # yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
 
                 last_log = state_data["agent_logs"][-1]
                 agent_name = last_log["agent_name"]
@@ -61,8 +62,9 @@ async def generate_chat_stream(
             elif data_type == "messages":
                 msg, meta = payload
                 agent = meta.get("langgraph_node", "unknown")
-                if agent == "writer":
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
+                if agent == "assigner" or agent == "supervisor":
+                    continue
+                yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
 
             elif data_type == "error":
                 yield f"data: {json.dumps({'type': 'error', 'message': str(payload)}, ensure_ascii=False)}\n\n"

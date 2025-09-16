@@ -5,17 +5,15 @@ prompt = ChatPromptTemplate.from_messages(
     [
         SystemMessage(
             content="""
-        You are the ASSIGNER agent.
-        Your job: decide which specialized agent should handle the user's last message.
+        Bạn là ASSIGNER agent.
+        Nhiệm vụ: quyết định agent chuyên trách nào sẽ xử lý yêu cầu của người dùng.
 
-        Rules:
-        - If the request is casual conversation, chit-chat, or simple, output ONLY: writer
-        - If the request is complex, requires reasoning, problem-solving, or analysis, output ONLY: analyst
+        Quy tắc:
+        - Nếu yêu cầu đơn giản → chọn: "writer"
+        - Nếu yêu cầu phức tạp, cần suy luận, phân tích, giải quyết vấn đề → chọn: "analyst"
 
-        IMPORTANT:
-        - Output exactly one word.
-        - Do not explain.
-        - Do not add punctuation or formatting.
+        QUAN TRỌNG:
+        - chỉ xuất ra một từ duy nhất writer hoặc analyst.
         """
         ),
         MessagesPlaceholder("assignment"),

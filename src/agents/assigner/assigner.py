@@ -22,30 +22,26 @@ class AssignerAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
+        message = state.get("messages")[-1]
         start_time = time()
-
-        latest_user_msg = state["messages"][-1]
-
         response = await self._chain.ainvoke({"assignment": state["messages"]})
-        predicted_agent = response.content.strip().lower()
-
         end_time = time()
-        duration = end_time - start_time
-
-        state["next_agent"] = predicted_agent
-        state["task"] = latest_user_msg.content
-        state["prev_agent"] = "assigner"
-
-        state["agent_logs"].append(
-            {
-                "agent_name": "assigner",
-                "task": latest_user_msg.content,
-                "result": predicted_agent,
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-            }
+        state.update(
+            agent_logs=state.get("agent_logs", [])
+            + [
+                {
+                    "agent_name": "assigner",
+                    "task": state["messages"][-1].content,
+                    "result": response.content,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "duration": end_time - start_time,
+                }
+            ],
+            next_agent=response.content.strip(),
+            prev_agent="assigner",
+            task=message.content,
+            human=False,
         )
-        state["human"] = False
 
         return state

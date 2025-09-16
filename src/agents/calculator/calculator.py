@@ -14,7 +14,7 @@ class CalculatorAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="calculator",
-            tools=[get_relative_date, get_time],
+            tools=tools,
             model=None,
         )
 
@@ -25,31 +25,28 @@ class CalculatorAgent(BaseAgent):
     async def process(self, state: State) -> State:
         start_time = time()
 
-        task_msg = HumanMessage(content=state["task"])
-        response = await self._chain.ainvoke({"task": [task_msg]})
-        content, human = super().response_filter(response.content)
-        logic_result = content.strip() if content else ""
-        end_time = time()
-        duration = end_time - start_time
-
-        final_task = state["task"] if logic_result == "" else logic_result
-
-        state["agent_logs"].append(
-            {
-                "agent_name": "calculator",
-                "task": state["task"],
-                "result": logic_result,
-                "step": len(state["agent_logs"]),
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-            }
+        response = await self._chain.ainvoke(
+            {"task": [HumanMessage(content=state["task"])]}
         )
+        end_time = time()
 
-        state["task"] = final_task
-        state["prev_agent"] = "calculator"
-        state["next_agent"] = "writer"
-        state["human"] = human
+        state.update(
+            agent_logs=state.get("agent_logs", [])
+            + [
+                {
+                    "agent_name": "calculator",
+                    "task": response.content,
+                    "result": response.content,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "duration": end_time - start_time,
+                }
+            ],
+            next_agent="writer",
+            prev_agent="calculator",
+            task=response.content,
+            human=None,
+        )
         return state
 
 

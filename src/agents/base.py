@@ -7,6 +7,7 @@ from langgraph.graph import StateGraph
 from langgraph.prebuilt import ToolNode, tools_condition
 import json
 from src.agents.human import human_node
+from langgraph.graph.state import CompiledStateGraph
 
 
 class BaseAgent:
@@ -28,15 +29,14 @@ class BaseAgent:
     async def process(self, state: State) -> State:
         return state
 
-    def response_filter(self, content: str):
-        lines = content.strip().splitlines()
-        last_line = lines[-1].strip()
+    # def response_filter(self, content: str) -> tuple:
+    #     lines = content.strip().splitlines()
+    #     last_line = lines[-1].strip()
+    #     direction = json.loads(last_line.lower())
+    #     content = "".join(lines[:-1]).strip()
+    #     return (content, direction)
 
-        human_dict = json.loads(last_line.lower())
-        clean_content = "".join(lines[:-1]).strip()
-        return (clean_content, human_dict["human"])
-
-    def get_graph(self) -> StateGraph:
+    def get_graph(self) -> CompiledStateGraph:
         graph = StateGraph(State)
         graph.add_node(self._agent_name, self.process)
         graph.add_node("human_node", human_node)
@@ -55,16 +55,3 @@ class BaseAgent:
         graph.set_entry_point(self._agent_name)
         graph.set_finish_point("human_node")
         return graph.compile(name=self._agent_name)
-
-    # def log_run(self, state: State, task: str, result: str, start: float, end: float):
-    #     state["agent_logs"].append(
-    #         {
-    #             "agent_name": self._agent_name,
-    #             "task": task,
-    #             "result": result,
-    #             "step": len(state["agent_logs"]) + 1,
-    #             "start_time": start,
-    #             "end_time": end,
-    #             "duration": end - start,
-    #         }
-    #     )

@@ -24,39 +24,36 @@ class WriterAgent(BaseAgent):
     async def process(self, state: State) -> State:
         start_time = time()
 
-        task_msg = HumanMessage(content=state["task"])
-
         if state["prev_agent"] == "assigner":
-            response = await self._chain.ainvoke(
-                {"task": state["messages"] + [task_msg]}
-            )
+            response = await self._chain.ainvoke({"task": state["messages"]})
         else:
             annotated_msg = SystemMessage(
                 content=f"NOTE: The following is the result from the {state["prev_agent"]} agent, not the user.\n"
             )
             response = await self._chain.ainvoke(
-                {"task": state["messages"] + [annotated_msg, task_msg]}
+                {
+                    "task": state["messages"]
+                    + [annotated_msg, HumanMessage(content=state["task"])]
+                }
             )
 
-        writer_result = response.content
-
         end_time = time()
-        duration = end_time - start_time
 
-        state["agent_logs"].append(
-            {
-                "agent_name": "writer",
-                "task": state["task"],
-                "result": writer_result,
-                "step": len(state["agent_logs"]),
-                "start_time": start_time,
-                "end_time": end_time,
-                "duration": duration,
-            }
+        state.update(
+            agent_logs=state.get("agent_logs", [])
+            + [
+                {
+                    "agent_name": "writer",
+                    "task": state["task"],
+                    "result": response.content,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "duration": end_time - start_time,
+                }
+            ],
+            prev_agent="writer",
+            next_agent=None,
+            human=False,
         )
-
-        state["prev_agent"] = "writer"
-        state["next_agent"] = None
-        state["human"] = False
 
         return {"messages": [response]}
