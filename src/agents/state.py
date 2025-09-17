@@ -1,7 +1,6 @@
 from langgraph.graph import MessagesState
 from typing import TypedDict
 from pydantic import Field
-import json
 
 
 class AgentLog(TypedDict):
