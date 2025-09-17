@@ -2,6 +2,27 @@
 
 An AI chatbot project built with FastAPI, LangChain, and other modern technologies. This project focuses on creating an intelligent chatbot capable of handling various tasks through specialized agents.
 
+
+## Project Structure
+
+```
+├── src/
+│   ├── agents/           # Specialized agents
+│   ├── api/             # API endpoints
+│   ├── config/          # Configuration
+│   ├── static/          # Static files
+│   ├── test/            # Unit tests
+│   ├── tools/           # Support tools
+│   ├── utils/           # Utilities
+│   └── main.py         # Entry point
+├── docker-compose.yml
+├── Dockerfile
+├── nginx.conf
+├── requirements.txt
+└── README.md
+```
+
+
 ### Technologies Used
 - 🤖 **AI/ML**: LangChain, LangGraph, TensorFlow, PyTorch, HuggingFace, SpaCy, Sentence Transformers, MCP, OpenCV
 - 🌐 **APIs**: Together API, Gemini API, Google API  
@@ -194,22 +215,3 @@ docker-compose up -d
 ```
 
 Application will be available at: http://localhost:8000
-
-## Project Structure
-
-```
-├── src/
-│   ├── agents/           # Specialized agents
-│   ├── api/             # API endpoints
-│   ├── config/          # Configuration
-│   ├── static/          # Static files
-│   ├── test/            # Unit tests
-│   ├── tools/           # Support tools
-│   ├── utils/           # Utilities
-│   └── main.py         # Entry point
-├── docker-compose.yml
-├── Dockerfile
-├── nginx.conf
-├── requirements.txt
-└── README.md
-```
