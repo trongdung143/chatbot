@@ -27,7 +27,6 @@ class CoderAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state["task"])]}
         )
-        print(response.content)
         end_time = time()
         state.update(
             agent_logs=state.get("agent_logs", [])

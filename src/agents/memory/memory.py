@@ -32,21 +32,18 @@ class MemoryAgent(BaseAgent):
         print(len(state.get("messages")))
         start_time = time()
         task = None
-        response = None
         if len(state.get("messages")) > 10:
-            task = "summarize conversation"
-            last_message = state.get("messages")[-1]
+            task = "summarize"
             response = await self._chain.ainvoke({"task": state.get("messages")[:-1]})
-            delete_messages = [RemoveMessage(id=m.id) for m in state.get("messages")]
-            state.update(messages=delete_messages)
-            state.update(
-                messages=[SystemMessage(content=response.content), last_message]
-            )
-            print(len(state.get("messages")))
+            return {
+                "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES)],
+                "summary": response.content,
+                "task": task,
+            }
         else:
             task = "skiped"
             response = SystemMessage(content="No summary needed (messages <= 10)")
-        print(response.content)
+
         end_time = time()
         state.update(
             agent_logs=state.get("agent_logs", [])

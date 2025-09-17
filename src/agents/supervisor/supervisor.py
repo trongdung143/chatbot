@@ -28,7 +28,6 @@ class SupervisorAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"supervision": [HumanMessage(content=state.get("task"))]}
         )
-        print(response.content)
         direction = json.loads(response.content)
         end_time = time()
         state.update(

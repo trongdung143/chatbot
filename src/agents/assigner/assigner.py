@@ -3,7 +3,7 @@ from time import time
 
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
-
+from langchain_core.messages import SystemMessage, HumanMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
 from src.agents.assigner.prompt import prompt
@@ -23,7 +23,14 @@ class AssignerAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         print("assigner")
-        last_message = state.get("messages")[-1]
+        if state.get("task") == "summarize":
+            state.update(
+                messages=[
+                    SystemMessage(content=state.get("summary"))
+                    + HumanMessage(content=state.get("human_msg"))
+                ]
+            )
+        print(state.get("summary"))
         start_time = time()
         response = await self._chain.ainvoke({"assignment": state.get("messages")})
         print(response.content)
@@ -33,7 +40,7 @@ class AssignerAgent(BaseAgent):
             + [
                 {
                     "agent_name": "assigner",
-                    "task": last_message.content,
+                    "task": state.get("human_msg"),
                     "result": response.content,
                     "start_time": start_time,
                     "end_time": end_time,
@@ -42,7 +49,7 @@ class AssignerAgent(BaseAgent):
             ],
             next_agent=response.content.strip(),
             prev_agent="assigner",
-            task=last_message.content,
+            task=state.get("human_msg"),
             human=False,
         )
 

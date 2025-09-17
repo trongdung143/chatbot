@@ -58,7 +58,7 @@ app.add_node("search", search.get_graph())
 app.add_node("tool", tool.get_graph())
 app.add_node("vision", vision.get_graph())
 
-app.set_entry_point("memory")
+app.set_entry_point("assigner")
 app.add_conditional_edges(
     "assigner",
     route,
@@ -77,7 +77,7 @@ app.add_conditional_edges(
     route,
     {"calculator": "calculator", "writer": "writer"},
 )
-app.add_edge("memory", "assigner")
+# app.add_edge("memory", "assigner")
 app.add_edge("analyst", "supervisor")
 app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")

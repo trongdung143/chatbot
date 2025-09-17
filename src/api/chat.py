@@ -25,58 +25,38 @@ async def generate_chat_stream(
             "prev_agent": None,
             "task": None,
             "human": None,
+            "human_msg": message,
+            "summary": None,
         }
 
         config = {"configurable": {"thread_id": session_id}}
 
         interrupt = graph.get_state(config=config).interrupts
         if interrupt:
+            input_state = {
+                "messages": [HumanMessage(content=message)],
+            }
             input_state = Command(resume=message)
         async for event in graph.astream(
             input=input_state,
             config=config,
             stream_mode=["messages", "updates"],
-            subgraphs=False,
+            subgraphs=True,
         ):
-            data_type, payload = event
-            # if data_type == "updates":
-            #     type, state_data = next(reversed(payload.items()))
+            _, data_type, chunk = event
 
-            #     if type == "__interrupt__":
-            #         yield f"data: {json.dumps({'type': 'chunk', 'content':state_data[0].value["AIMessage"]}, ensure_ascii=False)}\n\n"
-
-            #     last_log = state_data["agent_logs"][-1]
-            #     agent_name = last_log["agent_name"]
-            #     duration = last_log["duration"]
-            #     if agent_name not in ["assigner", "supervisor"]:
-            #         yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n✅{agent_name}   **{duration:.2f}s**\n'}, ensure_ascii=False)}\n\n"
-            # if not logs:
-            #     logs.append(payload)
-            # else:
-            #     last = list(logs[-1].values())[0]["agent_logs"]
-            #     current = list(payload.values())[0]["agent_logs"]
-            #     if last != current:
-            #         logs.append(payload)
-
+            if data_type == "update":
+                pass
             if data_type == "messages":
-                msg, meta = payload
+                msg, meta = chunk
                 agent = meta.get("langgraph_node", "unknown")
-                if agent not in ["writer", "analyst"]:
-                    continue
-                yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
-
-            elif data_type == "error":
-                yield f"data: {json.dumps({'type': 'error', 'message': str(payload)}, ensure_ascii=False)}\n\n"
-
-        # for state in logs:
-        #     for key in state:
-        #         current_state = state[key]
-        #         for log in current_state.get("agent_logs", []):
-        #             name = log.get("agent_name")
-        #             duration = log.get("duration")
-        #             if name and duration is not None:
-        #                 yield f"data: {json.dumps({'type': 'chunk', 'content': f'\n\n**{name.upper()}**   {duration:.2f}s'}, ensure_ascii=False)}\n\n"
-
+                if agent not in [
+                    "memory",
+                    "supervisor",
+                    "assigner",
+                ]:  # not in ["writer", "analyst"]:
+                    # continue
+                    yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
 
     except Exception as e:

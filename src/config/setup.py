@@ -3,6 +3,10 @@ import os
 import json
 
 load_dotenv()
+
+
+os.environ["GRPC_VERBOSITY"] = "NONE"
+os.environ["GRPC_TRACE"] = ""
 TOGETHER_API_KEY = os.getenv("TOGETHER_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")

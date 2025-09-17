@@ -25,18 +25,17 @@ class WriterAgent(BaseAgent):
         start_time = time()
 
         if state["prev_agent"] == "assigner":
-            response = await self._chain.ainvoke({"task": state["messages"]})
+            response = await self._chain.ainvoke({"task": state.get("messages")})
         else:
             annotated_msg = SystemMessage(
-                content=f"NOTE: The following is the result from the {state["prev_agent"]} agent, not the user.\n"
+                content=f"NOTE: The following is the result from the {state.get("prev_agent")} agent, not the user.\n"
             )
             response = await self._chain.ainvoke(
                 {
-                    "task": state["messages"]
-                    + [annotated_msg, HumanMessage(content=state["task"])]
+                    "task": state.get("messages")
+                    + [annotated_msg, HumanMessage(content=state.get("task"))]
                 }
             )
-        print(response.content)
         end_time = time()
 
         state.update(
@@ -44,7 +43,7 @@ class WriterAgent(BaseAgent):
             + [
                 {
                     "agent_name": "writer",
-                    "task": state["task"],
+                    "task": state.get("task"),
                     "result": response.content,
                     "start_time": start_time,
                     "end_time": end_time,

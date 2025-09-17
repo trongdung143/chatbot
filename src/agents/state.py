@@ -19,3 +19,5 @@ class State(MessagesState):
     prev_agent: str
     task: str
     human: bool
+    human_msg: str
+    summary: str
