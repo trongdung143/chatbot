@@ -43,6 +43,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Analyze feasibility
   - Propose solution approaches
 
+### Specialized Agents
 #### 4. SearchAgent
 - **Role**: Information search and synthesis
 - **Functions**:
@@ -51,7 +52,6 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Cite information sources
   - No speculation, only data-based responses
 
-### Specialized Agents
 
 #### 5. CoderAgent
 - **Role**: Handle programming-related issues
