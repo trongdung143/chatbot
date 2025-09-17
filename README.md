@@ -1,187 +1,215 @@
-# Multi-agent with LangGraph
+# AI Chatbot Project
 
-A multi-turn conversational AI assistant with natural, human-like dialogue.
+An AI chatbot project built with FastAPI, LangChain, and other modern technologies. This project focuses on creating an intelligent chatbot capable of handling various tasks through specialized agents.
 
-## Features
+### Technologies Used
+- 🤖 **AI/ML**: LangChain, LangGraph, TensorFlow, PyTorch, HuggingFace, SpaCy, Sentence Transformers, MCP, OpenCV
+- 🌐 **APIs**: Together API, Gemini API, Google API  
+- ⚙️ **Backend**: FastAPI, Nginx, Docker, PostgreSQL
 
-- **LLM Interaction:** Uses LangChain’s MCP to execute tasks via Gmail API, Google Drive, and local files.
-- **Long-Term Memory:** Stores conversation history and multi-session context in Supabase (PostgreSQL).
-- **Autonomous Tool Orchestration:** Utilizes LangGraph to perform actions based on user intent.
-- **Seamless Task Automation:** Smoothly integrates conversational AI with automated actions.
 
-## Tech Stack
+## Multi-Agent Architecture
 
-- Python, FastAPI
-- LangChain, LangGraph
-- PostgreSQL (Supabase)
-- Gmail API, Google Drive API
-- TensorFlow, Sentence Transformers, FAISS
+The chatbot is built on a Multi-Agent architecture, where each agent handles a specific role. Below are the details of the main agents in the system:
 
-## Setup
+![System Architecture](./graph.png)
 
-1. Copy `.env.example` to `.env` and fill in your API keys.
-2. Build and run Docker containers:
+### Core Agents
 
-```bash
-docker-compose up -d --build
-```
+#### 1. BaseAgent
+- **Role**: Base class for all agents in the system
+- **Functions**:
+  - Initialize agent and manage tools
+  - Integration with Google Generative AI (gemini-2.0-flash)
+  - Build and manage state graph for processing flow within each agent
+  - Coordinate processing flow between agents
 
-## Project Structure
+#### 2. AssignerAgent
+- **Role**: Analyze and route requests to appropriate agents
+- **Assignment Logic**:
+  - Writer: Simple requests (expression, rewriting, explanation)
+  - Analyst: Complex requests (reasoning, analysis, problem-solving)
+  - Coder: Programming-related requests, code, debugging
+  - Planner: Planning and process requests
+  - Search: Information lookup
+  - Tool: External tool usage (API, file ops)
+  - Vision: Image processing and OCR
 
-```
-├── src/
-│   ├── agents/             
-│   │   ├── analysis/       # Document analysis components
-│   │   ├── chat/          # Chat handling components
-│   │   └── manage/        # Management utilities
-│   ├── api/                # API endpoints
-│   ├── config/             # Configuration files
-│   ├── database/           # Database models and connections
-│   ├── prompts/            # Prompt templates and handlers
-│   ├── tools/              # Utility tools and helpers
-│   └── utils/              # General utilities
-├── static/                 # Frontend assets
-├── tests/                  # Test files
-├── docker-compose.yml      # Docker composition file
-├── Dockerfile             # Docker container definition
-├── nginx.conf            # Nginx configuration
-└── requirements.txt      # Python dependencies
-```
+#### 3. AnalystAgent
+- **Role**: Deep analysis of user requests
+- **Functions**:
+  - Clarify and structure requests
+  - Identify goals and expected outcomes
+  - Analyze feasibility
+  - Propose solution approaches
 
-## Features
+#### 4. SearchAgent
+- **Role**: Information search and synthesis
+- **Functions**:
+  - Search information from web or knowledge base
+  - Filter and return relevant results
+  - Cite information sources
+  - No speculation, only data-based responses
 
-- Document Analysis with RAG (Retrieval-Augmented Generation)
-- Real-time Chat Interface
-- User Session Management
-- File Upload/Download Capabilities
-- Database Integration with PostgreSQL
-- Docker Containerization
-- Nginx Reverse Proxy Support
+### Specialized Agents
 
-## Prerequisites
+#### 5. CoderAgent
+- **Role**: Handle programming-related issues
+- **Functions**:
+  - Write and edit code
+  - Debug errors
+  - Performance optimization
+  - Technical solution consulting
+
+#### 6. PlannerAgent
+- **Role**: Planning and strategy
+- **Functions**:
+  - Create detailed plans
+  - Break down tasks into steps
+  - Estimate time and resources
+  - Track progress
+
+#### 7. MemoryAgent
+- **Role**: Memory and context management
+- **Functions**:
+  - Store important information
+  - Maintain conversation context
+  - Retrieve relevant information
+  - Manage interaction history
+  - Summarize context when it becomes too long
+
+#### 8. WriterAgent
+- **Role**: Content creation and editing
+- **Functions**:
+  - Write text based on requirements
+  - Edit and optimize content
+  - Create summary reports
+  - Clear idea expression
+
+#### 9. ToolAgent
+- **Role**: External tool management and usage
+- **Functions**:
+  - Integration with external APIs
+  - File system operations
+  - Service connections (Gmail, Drive)
+  - System task processing
+
+#### 10. VisionAgent
+- **Role**: Image-related task processing
+- **Functions**:
+  - Image analysis
+  - Text recognition (OCR)
+  - Image processing and editing
+  - Image generation and adjustment
+
+### Request Processing Flow
+
+1. **Initialization**:
+   - All requests start from `MemoryAgent`
+   - `MemoryAgent` stores context and summarizes if context is too long for `AssignerAgent`
+
+2. **Task Assignment**:
+   - `AssignerAgent` analyzes request and determines appropriate agent
+   - Based on request type, routes to one of the agents:
+     - Analyst (complex analysis)
+     - Writer (simple tasks)
+     - Coder (code-related)
+     - Planner (planning)
+     - Search (information lookup)
+     - Tool (tool usage)
+     - Vision (image processing)
+
+3. **Specialized Processing**:
+   - Each agent processes according to its expertise
+   - `AnalystAgent` transfers results to `SupervisorAgent` after analysis
+   - `SupervisorAgent` decides which agent to route to and if user intervention is needed:
+     - Routes to `CalculatorAgent` if calculations needed
+     - Or routes to `WriterAgent` for response
+
+4. **Process Completion**:
+   - All agents transfer final results to `WriterAgent`
+   - `WriterAgent` formats and returns final response
+
+### Architecture Advantages
+
+1. **Modular and Extensible**:
+   - Each agent operates independently
+   - Easy to add new agents
+   - No impact on other agents during upgrades
+
+2. **Specialization**:
+   - Each agent focuses on specific tasks
+   - Optimization for each task type
+   - Easy to improve individual aspects
+
+3. **Processing Flexibility**:
+   - Adjustable processing flow based on requirements
+   - Supports parallel processing when needed
+   - Easy to add new processing steps
+
+4. **Efficient State Management**:
+   - Uses StateGraph for flow management
+   - Stores and tracks processing progress
+   - Easy debugging and troubleshooting
+
+## System Requirements
 
 - Python 3.12+
-- PostgreSQL Database
-- Docker (optional)
-- Nginx (for production deployment)
+- Docker and Docker Compose
+- Nginx (for production)
 
 ## Installation
 
-1. Clone the repository:
+1. Clone repository:
 ```bash
 git clone https://github.com/trongdung143/chatbot.git
 cd chatbot
 ```
 
-2. Set up a virtual environment:
+2. Create virtual environment and install dependencies:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-```
 
-3. Install dependencies:
-```bash
+source venv/bin/activate  # Linux/Mac
+.\venv\Scripts\activate  # Windows
+
 pip install -r requirements.txt
 ```
 
-4. Configure the database:
-   - Create a `.env` file in the project root
-   - Add your database configuration:
-   ```
-    TOGETHER_API_KEY=YOUR_TOGETHER_API_KEY_HERE
-    GOOGLE_API_KEY=YOUR_GOOGLE_API_KEY_HERE
-    ANTHROPIC_API_KEY=YOUR_ANTHROPIC_API_KEY_HERE
-    OPENAI_API_KEY=YOUR_OPENAI_API_KEY_HERE
-    SEARCH_ENGINE_ID=YOUR_SEARCH_ENGINE_ID_HERE
-    CLIENT_SECRET=YOUR_CLIENT_SECRET_HERE
-    CLIENT_ID=YOUR_CLIENT_ID_HERE
-    REDIRECT_URI=YOUR_REDIRECT_URI_HERE
-    TOKEN_URL=YOUR_TOKEN_URL_HERE
-    USERINFO_URL=YOUR_USERINFO_URL_HERE
-   ```
-
-5. Initialize the database:
-```bash
-python -m src.config.setup
-```
+3. Configure environment:
+- Create `.env` file from template and update environment variables
 
 ## Running the Application
 
-### Development Mode
+### Development
 
 ```bash
-python -m uvicorn src.main:app --host 0.0.0.0 --port 8080
+uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Using Docker
+### Production with Docker
 
 ```bash
-docker-compose up --build
+docker-compose up -d
 ```
 
-## API Endpoints
+Application will be available at: http://localhost:8000
 
-- `/api/chat` - Chat interface endpoints
-- `/api/login` - Authentication endpoints
-- `/api/download` - File download endpoints
-- `/api/home` - Home page and main functionality
+## Project Structure
 
-## Configuration
-
-### Database Configuration
-
-Database settings can be configured in `src/config/database.py`. The application uses SQLAlchemy with PostgreSQL.
-
-### System Configuration
-
-System-wide settings and configurations are managed in `src/config/setup.py`.
-
-## Development
-
-### Adding New Agents
-
-1. Create a new agent file in `src/agents/`
-2. Implement the agent interface
-3. Register the agent in `src/agents/workflow.py`
-
-### Creating New API Endpoints
-
-1. Add new route file in `src/api/`
-2. Implement the endpoint handlers
-3. Register routes in `src/main.py`
-
-## Testing
-
-Run tests using:
-```bash
-python -m pytest tests/
 ```
-
-## Deployment
-
-### Using Docker
-
-```bash
-docker-compose up -d --build
+├── src/
+│   ├── agents/           # Specialized agents
+│   ├── api/             # API endpoints
+│   ├── config/          # Configuration
+│   ├── static/          # Static files
+│   ├── test/            # Unit tests
+│   ├── tools/           # Support tools
+│   ├── utils/           # Utilities
+│   └── main.py         # Entry point
+├── docker-compose.yml
+├── Dockerfile
+├── nginx.conf
+├── requirements.txt
+└── README.md
 ```
-
-### Manual Deployment
-
-1. Set up Nginx using the provided `nginx.conf`
-2. Configure SSL certificates
-3. Start the application using a production WSGI server
-
-## System Scripts
-
-The `src/config/system/` directory contains useful scripts for:
-- Starting/stopping the server
-- System restart
-- Ngrok tunneling setup
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request

@@ -3,11 +3,16 @@ from langchain_core.tools.base import BaseTool
 from time import time
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import (
+    HumanMessage,
+    AIMessage,
+    SystemMessage,
+    RemoveMessage,
+)
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 from src.agents.base import BaseAgent
 from src.agents.state import State
 from src.agents.memory.prompt import prompt
-from src.tools.life import get_relative_date, get_time
 
 
 class MemoryAgent(BaseAgent):
@@ -24,10 +29,23 @@ class MemoryAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         print("memory")
+        print(len(state.get("messages")))
         start_time = time()
-        response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state["task"])]}
-        )
+        task = None
+        response = None
+        if len(state.get("messages")) > 10:
+            task = "summarize conversation"
+            last_message = state.get("messages")[-1]
+            response = await self._chain.ainvoke({"task": state.get("messages")[:-1]})
+            delete_messages = [RemoveMessage(id=m.id) for m in state.get("messages")]
+            state.update(messages=delete_messages)
+            state.update(
+                messages=[SystemMessage(content=response.content), last_message]
+            )
+            print(len(state.get("messages")))
+        else:
+            task = "skiped"
+            response = SystemMessage(content="No summary needed (messages <= 10)")
         print(response.content)
         end_time = time()
         state.update(
@@ -35,16 +53,16 @@ class MemoryAgent(BaseAgent):
             + [
                 {
                     "agent_name": "memory",
-                    "task": response.content,
+                    "task": task,
                     "result": response.content,
                     "start_time": start_time,
                     "end_time": end_time,
                     "duration": end_time - start_time,
                 }
             ],
-            next_agent="writer",
+            next_agent="assigner",
             prev_agent="memory",
-            task=response.content,
-            human=None,
+            task=task,
+            human=False,
         )
         return state

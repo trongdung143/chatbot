@@ -23,9 +23,9 @@ class AssignerAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         print("assigner")
-        message = state.get("messages")[-1]
+        last_message = state.get("messages")[-1]
         start_time = time()
-        response = await self._chain.ainvoke({"assignment": state["messages"]})
+        response = await self._chain.ainvoke({"assignment": state.get("messages")})
         print(response.content)
         end_time = time()
         state.update(
@@ -33,7 +33,7 @@ class AssignerAgent(BaseAgent):
             + [
                 {
                     "agent_name": "assigner",
-                    "task": state["messages"][-1].content,
+                    "task": last_message.content,
                     "result": response.content,
                     "start_time": start_time,
                     "end_time": end_time,
@@ -42,7 +42,7 @@ class AssignerAgent(BaseAgent):
             ],
             next_agent=response.content.strip(),
             prev_agent="assigner",
-            task=message.content,
+            task=last_message.content,
             human=False,
         )
 

@@ -7,8 +7,9 @@ prompt = ChatPromptTemplate.from_messages(
             content="""
             Bạn là TOOL agent.
             Nhiệm vụ:
-            - Tương tác với API hoặc công cụ bên ngoài (Gmail, Google Drive, File, Database).
+            - Tương tác với API hoặc công cụ (Gmail, Google Drive, File, Database).
             - Chạy lệnh tool một cách an toàn.
+
             Output:
             - Kết quả từ tool, không tự diễn giải thêm.
         """

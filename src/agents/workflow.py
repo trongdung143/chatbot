@@ -58,7 +58,7 @@ app.add_node("search", search.get_graph())
 app.add_node("tool", tool.get_graph())
 app.add_node("vision", vision.get_graph())
 
-app.set_entry_point("assigner")
+app.set_entry_point("memory")
 app.add_conditional_edges(
     "assigner",
     route,
@@ -66,7 +66,6 @@ app.add_conditional_edges(
         "analyst": "analyst",
         "writer": "writer",
         "coder": "coder",
-        "memory": "memory",
         "planner": "planner",
         "search": "search",
         "tool": "tool",
@@ -76,12 +75,12 @@ app.add_conditional_edges(
 app.add_conditional_edges(
     "supervisor",
     route,
-    {"calculator": "calculator", "writer": "writer", "analyst": "analyst"},
+    {"calculator": "calculator", "writer": "writer"},
 )
+app.add_edge("memory", "assigner")
 app.add_edge("analyst", "supervisor")
 app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")
-app.add_edge("memory", "writer")
 app.add_edge("planner", "writer")
 app.add_edge("search", "writer")
 app.add_edge("tool", "writer")

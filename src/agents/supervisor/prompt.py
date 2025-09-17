@@ -19,6 +19,7 @@ prompt = ChatPromptTemplate.from_messages(
 
             ⚠️ QUAN TRỌNG:
             - Trả về đúng MỘT dòng JSON duy nhất, không giải thích, không xuống dòng, không prefix.
+            - "next_agent" phải bắt buộc là "writer" hoặc "calculator"
             - Format chuẩn:
             {"human": False, "next_agent": "writer" hoặc "calculator"}
             """
