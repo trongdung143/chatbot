@@ -46,15 +46,15 @@ async def generate_chat_stream(
             if data_type == "update":
                 pass
             if data_type == "messages":
-                msg, meta = chunk
+                response, meta = chunk
                 agent = meta.get("langgraph_node", "unknown")
-                if agent not in [
-                    "memory",
-                    "supervisor",
-                    "assigner",
-                ]:  # not in ["writer", "analyst"]:
-                    # continue
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': msg.content}, ensure_ascii=False)}\n\n"
+
+                yield f"data: {json.dumps({'type': 'status', 'agent': agent}, ensure_ascii=False)}\n\n"
+
+                if agent not in ["memory", "supervisor", "assigner"]:
+                    yield f"data: {json.dumps({'type': 'chunk',
+                                            'response': response.content,
+                                            'agent': agent}, ensure_ascii=False)}\n\n"
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
 
     except Exception as e:

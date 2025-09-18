@@ -6,8 +6,6 @@ from fastapi.responses import JSONResponse
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="src/static"), name="static")
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8000", "http://127.0.0.1:8000"],
