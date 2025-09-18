@@ -20,13 +20,11 @@ async def generate_chat_stream(
         input_state = {
             "messages": [HumanMessage(content=message)],
             "thread_id": session_id,
-            "agent_logs": [],
             "next_agent": None,
             "prev_agent": None,
             "task": None,
+            "result": None,
             "human": None,
-            "human_msg": message,
-            "summary": None,
         }
 
         config = {"configurable": {"thread_id": session_id}}

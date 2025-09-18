@@ -22,27 +22,24 @@ class CoderAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        print("coder")
-        start_time = time()
+
         response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state["task"])]}
+            {"task": [HumanMessage(content=state.get("task"))]}
         )
-        end_time = time()
+        print("coder", response.content)
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [
                 {
                     "agent_name": "coder",
-                    "task": response.content,
+                    "task": state.get("task"),
                     "result": response.content,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": end_time - start_time,
                 }
             ],
             next_agent="writer",
             prev_agent="coder",
-            task=response.content,
+            task=state.get("task"),
+            result=response.content,
             human=None,
         )
         return state

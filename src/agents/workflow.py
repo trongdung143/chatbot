@@ -21,11 +21,11 @@ writer = WriterAgent()
 calculator = CalculatorAgent()
 supervisor = SupervisorAgent()
 coder = CoderAgent()
-memory = MemoryAgent()
 planner = PlannerAgent()
 search = SearchAgent()
 tool = ToolAgent()
 vision = VisionAgent()
+memory = MemoryAgent()
 
 
 def route(state: State) -> str:
@@ -46,19 +46,19 @@ def route(state: State) -> str:
     return "writer"
 
 
-app.add_node("assigner", assigner.get_graph())
-app.add_node("analyst", analyst.get_graph())
-app.add_node("writer", writer.get_graph())
-app.add_node("supervisor", supervisor.get_graph())
-app.add_node("calculator", calculator.get_graph())
-app.add_node("coder", coder.get_graph())
-app.add_node("memory", memory.get_graph())
-app.add_node("planner", planner.get_graph())
-app.add_node("search", search.get_graph())
-app.add_node("tool", tool.get_graph())
-app.add_node("vision", vision.get_graph())
+app.add_node("assigner", assigner.process)
+app.add_node("analyst", analyst.process)
+app.add_node("writer", writer.process)
+app.add_node("supervisor", supervisor.process)
+app.add_node("calculator", calculator.process)
+app.add_node("coder", coder.process)
+app.add_node("memory", memory.process)
+app.add_node("planner", planner.process)
+app.add_node("search", search.process)
+app.add_node("tool", tool.process)
+app.add_node("vision", vision.process)
 
-app.set_entry_point("assigner")
+app.set_entry_point("memory")
 app.add_conditional_edges(
     "assigner",
     route,
@@ -77,7 +77,7 @@ app.add_conditional_edges(
     route,
     {"calculator": "calculator", "writer": "writer"},
 )
-# app.add_edge("memory", "assigner")
+app.add_edge("memory", "assigner")
 app.add_edge("analyst", "supervisor")
 app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")

@@ -27,27 +27,23 @@ class AnalystAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         print("analyst")
-        start_time = time()
         response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state["task"])]}
+            {"task": [HumanMessage(content=state.get("task"))]}
         )
-        end_time = time()
-
+        print("analyst", response.content)
         state.update(
-            agent_logs=state.get("agent_logs", [])
+            agent_logs=state.get("agent_logs")
             + [
                 {
                     "agent_name": "analyst",
-                    "task": response.content,
+                    "task": state.get("task"),
                     "result": response.content,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": end_time - start_time,
                 }
             ],
             next_agent=None,
             prev_agent="analyst",
-            task=response.content,
-            human=True,
+            task=state.get("task"),
+            result=response.content,
+            human=None,
         )
         return state

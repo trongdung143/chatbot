@@ -15,13 +15,13 @@ prompt = ChatPromptTemplate.from_messages(
             1. Nếu output chỉ là text (không có JSON):
             - Nếu prev_agent là calculator hoặc analyst → next_agent = "writer".
             - Nếu prev_agent là writer → đây là câu trả lời cuối, không cần agent tiếp theo.
-            2. "human" = True nếu cần xác nhận từ con người, ngược lại False.
+            2. "human" = true nếu cần xác nhận từ con người, ngược lại false.
 
-            ⚠️ QUAN TRỌNG:
+            QUAN TRỌNG:
             - Trả về đúng MỘT dòng JSON duy nhất, không giải thích, không xuống dòng, không prefix.
             - "next_agent" phải bắt buộc là "writer" hoặc "calculator"
             - Format chuẩn:
-            {"human": False, "next_agent": "writer" hoặc "calculator"}
+            {"human": false, "next_agent": "writer" hoặc "calculator"}
             """
         ),
         MessagesPlaceholder("supervision"),

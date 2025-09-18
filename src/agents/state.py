@@ -7,9 +7,6 @@ class AgentLog(TypedDict):
     agent_name: str
     task: str
     result: str
-    start_time: float
-    end_time: float
-    duration: float
 
 
 class State(MessagesState):
@@ -18,6 +15,5 @@ class State(MessagesState):
     next_agent: str
     prev_agent: str
     task: str
+    result: str
     human: bool
-    human_msg: str
-    summary: str

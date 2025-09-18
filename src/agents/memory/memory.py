@@ -28,38 +28,34 @@ class MemoryAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        print("memory")
-        print(len(state.get("messages")))
-        start_time = time()
+
         task = None
-        if len(state.get("messages")) > 10:
-            task = "summarize"
-            response = await self._chain.ainvoke({"task": state.get("messages")[:-1]})
-            return {
-                "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES)],
-                "summary": response.content,
-                "task": task,
-            }
+        response = None
+        messages = state.get("messages")
+        if len(messages) >= 10:
+            last_msg = messages[-1]
+            task = "summary"
+            response = await self._chain.ainvoke({"task": messages[:-1]})
+            delete_msg = [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
+            messages = delete_msg + [SystemMessage(content=response.content), last_msg]
         else:
             task = "skiped"
-            response = SystemMessage(content="No summary needed (messages <= 10)")
-
-        end_time = time()
+            response = SystemMessage(content="messages < 10")
+        print("memory", response.content)
         state.update(
+            messages=messages,
             agent_logs=state.get("agent_logs", [])
             + [
                 {
                     "agent_name": "memory",
                     "task": task,
                     "result": response.content,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": end_time - start_time,
                 }
             ],
             next_agent="assigner",
             prev_agent="memory",
             task=task,
+            result=response.content,
             human=False,
         )
         return state

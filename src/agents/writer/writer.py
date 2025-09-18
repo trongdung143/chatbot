@@ -21,9 +21,6 @@ class WriterAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        print("writer")
-        start_time = time()
-
         if state["prev_agent"] == "assigner":
             response = await self._chain.ainvoke({"task": state.get("messages")})
         else:
@@ -33,26 +30,25 @@ class WriterAgent(BaseAgent):
             response = await self._chain.ainvoke(
                 {
                     "task": state.get("messages")
-                    + [annotated_msg, HumanMessage(content=state.get("task"))]
+                    + [annotated_msg, HumanMessage(content=state.get("result"))]
                 }
             )
-        end_time = time()
-
+        print("writer", response.content)
         state.update(
+            messages=[response],
             agent_logs=state.get("agent_logs", [])
             + [
                 {
                     "agent_name": "writer",
-                    "task": state.get("task"),
+                    "task": state.get("result"),
                     "result": response.content,
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": end_time - start_time,
                 }
             ],
             prev_agent="writer",
             next_agent=None,
+            task=state.get("result"),
+            result=response.content,
             human=False,
         )
 
-        return {"messages": [response]}
+        return state

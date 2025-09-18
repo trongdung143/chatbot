@@ -26,6 +26,8 @@ class BaseAgent:
             disable_streaming=False,
         ).bind_tools(self._tools)
 
+        self._sub_graph = StateGraph(State)
+
     async def process(self, state: State) -> State:
         return state
 
@@ -36,22 +38,25 @@ class BaseAgent:
     #     content = "".join(lines[:-1]).strip()
     #     return (content, direction)
 
-    def get_graph(self) -> CompiledStateGraph:
-        graph = StateGraph(State)
-        graph.add_node(self._agent_name, self.process)
-        graph.add_node("human_node", human_node)
+    def set_subgraph(self):
+        pass
 
-        if self._tools:
-            graph.add_node("tools", ToolNode(self._tools))
-            graph.add_conditional_edges(
-                self._agent_name,
-                tools_condition,
-                {"tools": "tools", "__end__": "human_node"},
-            )
-            graph.add_edge("tools", self._agent_name)
-        else:
-            graph.add_edge(self._agent_name, "human_node")
+    def get_subgraph(self) -> CompiledStateGraph:
+        # graph = StateGraph(State)
+        # graph.add_node(self._agent_name, self.process)
+        # graph.add_node("human_node", human_node)
 
-        graph.set_entry_point(self._agent_name)
-        graph.set_finish_point("human_node")
-        return graph.compile(name=self._agent_name)
+        # if self._tools:
+        #     graph.add_node("tools", ToolNode(self._tools))
+        #     graph.add_conditional_edges(
+        #         self._agent_name,
+        #         tools_condition,
+        #         {"tools": "tools", "__end__": "human_node"},
+        #     )
+        #     graph.add_edge("tools", self._agent_name)
+        # else:
+        #     graph.add_edge(self._agent_name, "human_node")
+
+        # graph.set_entry_point(self._agent_name)
+        # graph.set_finish_point("human_node")
+        return self._sub_graph.compile(name=self._agent_name)

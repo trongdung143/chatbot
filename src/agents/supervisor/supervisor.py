@@ -1,6 +1,8 @@
 from typing import Sequence
 from time import time
-import json
+import re, json
+
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
 
@@ -23,13 +25,13 @@ class SupervisorAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        print("supervisor")
-        start_time = time()
+
         response = await self._chain.ainvoke(
-            {"supervision": [HumanMessage(content=state.get("task"))]}
+            {"supervision": [HumanMessage(content=state.get("result"))]}
         )
-        direction = json.loads(response.content)
-        end_time = time()
+        print("supervisor", response.content)
+
+        direction = json.loads(response.content.strip())
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [
@@ -37,14 +39,12 @@ class SupervisorAgent(BaseAgent):
                     "agent_name": "supervisor",
                     "task": "direction",
                     "result": str(direction),
-                    "start_time": start_time,
-                    "end_time": end_time,
-                    "duration": end_time - start_time,
                 }
             ],
             next_agent=direction.get("next_agent"),
             prev_agent=state.get("prev_agent"),
-            task=state.get("task"),
+            task=state.get("result"),
+            result=response.content,
             human=direction.get("human"),
         )
 
