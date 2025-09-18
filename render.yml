@@ -2,10 +2,10 @@ services:
   - type: web
     name: multi-agent-api
     env: python
-    plan: free  
+    plan: free
     pythonVersion: 3.12
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn src.main:app --host 0.0.0.0 --port 10000"
+    startCommand: "streamlit run streamlit.py --server.port $PORT --server.address 0.0.0.0"
     envVars:
       - key: GOOGLE_API_KEY
         sync: false

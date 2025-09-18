@@ -13,3 +13,5 @@ pypdf
 pydantic
 langgraph
 python-multipart
+streamlit
+nest_asyncio
