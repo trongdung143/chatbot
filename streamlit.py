@@ -1,55 +1,20 @@
 import streamlit as st
-import asyncio
-import uuid
-import importlib
-import sys, os
-from langchain_core.messages import HumanMessage, AIMessage
+import requests
+import sseclient
+import os
+import json
+import time
 
+st.set_page_config(page_title="Chatbot", page_icon="", layout="wide")
 
-st.set_page_config(page_title="Multi-Agent", page_icon="", layout="wide")
-
-
-if sys.platform.startswith("win"):
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
-
-
-st.markdown(
-    """
-    <style>
-    .stApp {
-        background-color: #f9fafb;
-    }
-    .stChatMessage {
-        border-radius: 12px;
-        padding: 12px;
-        margin-bottom: 8px;
-    }
-    .stChatMessage.user {
-        background-color: #dbeafe;
-        text-align: right;
-    }
-    .stChatMessage.assistant {
-        background-color: #f3f4f6;
-    }
-    .stTextInput input {
-        border-radius: 12px;
-        border: 1px solid #9ca3af;
-        padding: 8px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
+BACKEND_URL = "http://localhost:8080/chat"
 
 AGENTS_DIR = "src/agents"
 agents = sorted(
-    [
-        name
-        for name in os.listdir(AGENTS_DIR)
-        if os.path.isdir(os.path.join(AGENTS_DIR, name))
-    ]
+    [a for a in os.listdir(AGENTS_DIR) if os.path.isdir(os.path.join(AGENTS_DIR, a))]
 )
+if "__pycache__" in agents:
+    agents.remove("__pycache__")
 
 agent_icons = {
     "analyst": "📊",
@@ -65,86 +30,90 @@ agent_icons = {
     "writer": "✍️",
 }
 
-with st.sidebar:
-    st.title("Multi-Agent Chatbot")
-    st.markdown("### Agents")
+sidebar_container = st.sidebar.empty()
 
-    for agent in agents:
-        icon = agent_icons.get(agent, "🔹")
-        st.markdown(f"- {icon} **{agent.capitalize()}**")
 
-    st.divider()
+def render_sidebar():
+    with sidebar_container.container():
+        st.subheader("Agents")
+        working_agent = st.session_state.get("working_agent", None)
+        for agent in agents:
+            icon = agent_icons.get(agent, "🔹")
+            if agent == working_agent:
+                st.markdown(f"**{icon} {agent.capitalize()} ⏳**")
+            else:
+                st.markdown(f"{icon} {agent.capitalize()}")
 
-if "event_loop" not in st.session_state:
-    loop = asyncio.new_event_loop()
-    st.session_state.event_loop = loop
-    asyncio.set_event_loop(loop)
-else:
-    asyncio.set_event_loop(st.session_state.event_loop)
+        st.markdown(f"⏱️{st.session_state.total_time:.2f}s**")
+        st.divider()
 
-if "graph" not in st.session_state:
-    workflow_mod = importlib.import_module("src.agents.workflow")
-    st.session_state.graph = workflow_mod.graph
 
-if "thread_id" not in st.session_state:
-    st.session_state.thread_id = str(uuid.uuid4())
+if "session_id" not in st.session_state:
+    st.session_state.session_id = None
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "working_agent" not in st.session_state:
+    st.session_state.working_agent = None
+if "start_time_global" not in st.session_state:
+    st.session_state.start_time_global = None
+if "total_time" not in st.session_state:
+    st.session_state.total_time = 0.0
 
+render_sidebar()
 
 for msg in st.session_state.messages:
-    role = "user" if isinstance(msg, HumanMessage) else "assistant"
-    avatar = "🧑‍💻" if role == "user" else "🤖"
-    with st.chat_message(role, avatar=avatar):
-        st.markdown(msg.content)
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
 
+if prompt := st.chat_input("enter ..."):
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
 
-def run_on_session_loop(coro):
-    loop = st.session_state.event_loop
-    return loop.run_until_complete(coro)
-
-
-if prompt := st.chat_input("Nhập tin nhắn..."):
-    st.chat_message("user", avatar="🧑‍💻").markdown(prompt)
-    st.session_state.messages.append(HumanMessage(content=prompt))
-
-    input_state = {
-        "messages": [HumanMessage(content=prompt)],
-        "thread_id": st.session_state.thread_id,
-        "next_agent": None,
-        "prev_agent": None,
-        "task": None,
-        "result": None,
-        "human": None,
-    }
-    config = {"configurable": {"thread_id": st.session_state.thread_id}}
-
-    with st.chat_message("assistant", avatar="🤖"):
+    with st.chat_message("assistant"):
         placeholder = st.empty()
-        full_response = [""]
+        full_response = ""
 
-        async def run_graph():
-            async for event in st.session_state.graph.astream(
-                input=input_state,
-                config=config,
-                stream_mode=["messages", "updates"],
-                subgraphs=True,
-            ):
-                _, data_type, chunk = event
-                if data_type == "messages":
-                    msg, meta = chunk
-                    agent = meta.get("langgraph_node", "unknown")
-                    if agent in ["memory", "supervisor", "assigner"]:
-                        continue
-                    text = (
-                        msg.content
-                        if isinstance(msg.content, str)
-                        else str(msg.content)
-                    )
-                    full_response[0] += text
-                    placeholder.markdown(full_response[0])
+        with st.spinner("thinking ..."):
+            data = {"message": prompt}
+            cookies = (
+                {"session_id": st.session_state.session_id}
+                if st.session_state.session_id
+                else None
+            )
+            resp = requests.post(BACKEND_URL, data=data, cookies=cookies, stream=True)
+            client = sseclient.SSEClient(resp)
 
-        with st.spinner("💡 Đang suy nghĩ..."):
-            run_on_session_loop(run_graph())
+        with st.spinner("responding ..."):
+            for event in client.events():
+                if not event.data:
+                    continue
+                data = json.loads(event.data)
 
-        st.session_state.messages.append(AIMessage(content=full_response[0]))
+                if st.session_state.start_time_global is None:
+                    st.session_state.start_time_global = time.time()
+
+                if data["type"] == "status":
+                    st.session_state.working_agent = data["agent"]
+                    render_sidebar()
+
+                elif data["type"] == "chunk":
+                    full_response += data["response"]
+                    placeholder.markdown(full_response)
+
+                elif data["type"] == "done":
+                    if st.session_state.start_time_global:
+                        st.session_state.total_time = (
+                            time.time() - st.session_state.start_time_global
+                        )
+                    break
+
+                elif data["type"] == "error":
+                    placeholder.error(data["message"])
+                    break
+
+        st.session_state.working_agent = None
+        render_sidebar()
+        st.session_state.messages.append(
+            {"role": "assistant", "content": full_response}
+        )
