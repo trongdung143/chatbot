@@ -51,8 +51,6 @@ agents = sorted(
     ]
 )
 
-agents.remove("__pycache__")
-
 agent_icons = {
     "analyst": "📊",
     "assigner": "📌",
