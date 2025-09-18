@@ -2,11 +2,80 @@ import streamlit as st
 import asyncio
 import uuid
 import importlib
+import sys, os
 from langchain_core.messages import HumanMessage, AIMessage
 
 
-st.set_page_config(page_title="Multi-Agent Chatbot", page_icon="", layout="wide")
+st.set_page_config(page_title="Multi-Agent", page_icon="", layout="wide")
 
+
+if sys.platform.startswith("win"):
+    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+
+st.markdown(
+    """
+    <style>
+    .stApp {
+        background-color: #f9fafb;
+    }
+    .stChatMessage {
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 8px;
+    }
+    .stChatMessage.user {
+        background-color: #dbeafe;
+        text-align: right;
+    }
+    .stChatMessage.assistant {
+        background-color: #f3f4f6;
+    }
+    .stTextInput input {
+        border-radius: 12px;
+        border: 1px solid #9ca3af;
+        padding: 8px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+AGENTS_DIR = "src/agents"
+agents = sorted(
+    [
+        name
+        for name in os.listdir(AGENTS_DIR)
+        if os.path.isdir(os.path.join(AGENTS_DIR, name))
+    ]
+)
+
+agents.remove("__pycache__")
+
+agent_icons = {
+    "analyst": "📊",
+    "assigner": "📌",
+    "calculator": "🧮",
+    "coder": "💻",
+    "memory": "🧠",
+    "planner": "🗓️",
+    "search": "🔍",
+    "supervisor": "👨‍💼",
+    "tool": "🛠️",
+    "vision": "👁️",
+    "writer": "✍️",
+}
+
+with st.sidebar:
+    st.title("Multi-Agent Chatbot")
+    st.markdown("### Agents")
+
+    for agent in agents:
+        icon = agent_icons.get(agent, "🔹")
+        st.markdown(f"- {icon} **{agent.capitalize()}**")
+
+    st.divider()
 
 if "event_loop" not in st.session_state:
     loop = asyncio.new_event_loop()
@@ -15,11 +84,9 @@ if "event_loop" not in st.session_state:
 else:
     asyncio.set_event_loop(st.session_state.event_loop)
 
-
 if "graph" not in st.session_state:
     workflow_mod = importlib.import_module("src.agents.workflow")
     st.session_state.graph = workflow_mod.graph
-
 
 if "thread_id" not in st.session_state:
     st.session_state.thread_id = str(uuid.uuid4())
@@ -29,7 +96,8 @@ if "messages" not in st.session_state:
 
 for msg in st.session_state.messages:
     role = "user" if isinstance(msg, HumanMessage) else "assistant"
-    with st.chat_message(role):
+    avatar = "🧑‍💻" if role == "user" else "🤖"
+    with st.chat_message(role, avatar=avatar):
         st.markdown(msg.content)
 
 
@@ -39,7 +107,7 @@ def run_on_session_loop(coro):
 
 
 if prompt := st.chat_input("Nhập tin nhắn..."):
-    st.chat_message("user").markdown(prompt)
+    st.chat_message("user", avatar="🧑‍💻").markdown(prompt)
     st.session_state.messages.append(HumanMessage(content=prompt))
 
     input_state = {
@@ -53,7 +121,7 @@ if prompt := st.chat_input("Nhập tin nhắn..."):
     }
     config = {"configurable": {"thread_id": st.session_state.thread_id}}
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🤖"):
         placeholder = st.empty()
         full_response = [""]
 
@@ -64,15 +132,12 @@ if prompt := st.chat_input("Nhập tin nhắn..."):
                 stream_mode=["messages", "updates"],
                 subgraphs=True,
             ):
-
                 _, data_type, chunk = event
-
                 if data_type == "messages":
                     msg, meta = chunk
                     agent = meta.get("langgraph_node", "unknown")
                     if agent in ["memory", "supervisor", "assigner"]:
                         continue
-
                     text = (
                         msg.content
                         if isinstance(msg.content, str)
@@ -81,5 +146,7 @@ if prompt := st.chat_input("Nhập tin nhắn..."):
                     full_response[0] += text
                     placeholder.markdown(full_response[0])
 
-        run_on_session_loop(run_graph())
+        with st.spinner("💡 Đang suy nghĩ..."):
+            run_on_session_loop(run_graph())
+
         st.session_state.messages.append(AIMessage(content=full_response[0]))

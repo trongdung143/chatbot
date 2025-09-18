@@ -34,6 +34,7 @@ class WriterAgent(BaseAgent):
                 }
             )
         print("writer", response.content)
+        print("length of messages: ", len(state.get("messages")))
         state.update(
             messages=[response],
             agent_logs=state.get("agent_logs", [])
