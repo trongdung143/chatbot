@@ -3,15 +3,19 @@ from fastapi.responses import StreamingResponse
 from typing import Optional, AsyncGenerator
 import json
 from src.agents.workflow import graph
-from langchain_core.messages import HumanMessage, SystemMessage, AIMessageChunk
+from langchain_core.messages import HumanMessage, AIMessage, RemoveMessage
 from src.utils.handler import save_upload_file_into_temp
 from langgraph.types import Command
+from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 router = APIRouter()
 
 
 async def generate_chat_stream(
-    message: str, session_id: Optional[str], file: Optional[UploadFile] = None
+    message: str,
+    conversation_id: str,
+    file: Optional[UploadFile] = None,
+    messages: Optional[list[dict]] = None,
 ) -> AsyncGenerator[str, None]:
     try:
         if file:
@@ -19,7 +23,7 @@ async def generate_chat_stream(
 
         input_state = {
             "messages": [HumanMessage(content=message)],
-            "thread_id": session_id,
+            "thread_id": conversation_id,
             "next_agent": None,
             "prev_agent": None,
             "task": None,
@@ -27,7 +31,21 @@ async def generate_chat_stream(
             "human": None,
         }
 
-        config = {"configurable": {"thread_id": session_id}}
+        config = {"configurable": {"thread_id": conversation_id}}
+
+        if messages:
+            old_messages = []
+            for msg in messages:
+                if msg.get("sendertype") == "USER":
+                    old_messages.append(HumanMessage(content=msg.get("content")))
+                elif msg.get("sendertype") == "AI":
+                    old_messages.append(AIMessage(content=msg.get("content")))
+            graph.update_state(
+                config=config,
+                values={
+                    "messages": [RemoveMessage(id=REMOVE_ALL_MESSAGES)] + old_messages
+                },
+            )
 
         interrupt = graph.get_state(config=config).interrupts
         if interrupt:
@@ -69,10 +87,11 @@ async def generate_chat_stream(
 async def chatbot_stream(
     message: str = Form(""),
     file: Optional[UploadFile] = File(None),
-    session_id: Optional[str] = Cookie(None),
+    conversation_id: str = Cookie(None),
+    messages: Optional[list[dict]] = Form(None),
 ) -> StreamingResponse:
     return StreamingResponse(
-        generate_chat_stream(message, session_id, file),
+        generate_chat_stream(message, conversation_id, file, messages),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
