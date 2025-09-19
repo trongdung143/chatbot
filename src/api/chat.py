@@ -67,10 +67,7 @@ async def generate_chat_stream(
                 response, meta = chunk
                 agent = meta.get("langgraph_node", "unknown")
 
-                yield f"data: {json.dumps({'type': 'status', 'agent': agent}, ensure_ascii=False)}\n\n"
-
-                if agent not in ["memory", "supervisor", "assigner"]:
-                    yield f"data: {json.dumps({'type': 'chunk',
+                yield f"data: {json.dumps({'type': 'chunk',
                                             'response': response.content,
                                             'agent': agent}, ensure_ascii=False)}\n\n"
         yield f"data: {json.dumps({'type': 'done'}, ensure_ascii=False)}\n\n"
