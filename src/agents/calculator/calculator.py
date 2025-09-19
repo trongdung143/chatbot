@@ -25,22 +25,22 @@ class CalculatorAgent(BaseAgent):
     async def process(self, state: State) -> State:
 
         response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state.get("result"))]}
+            {"task": [HumanMessage(content=state.get("result").content)]}
         )
-        print("calculator", response.content)
+        print("calculator", response)
         state.update(
             agent_logs=state.get("agent_logs")
             + [
                 {
                     "agent_name": "calculator",
                     "task": state.get("result"),
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             next_agent="writer",
             prev_agent="calculator",
             task=state.get("result"),
-            result=response.content,
+            result=response,
             human=None,
         )
         return state

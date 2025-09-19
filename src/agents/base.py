@@ -15,6 +15,7 @@ class BaseAgent:
         self,
         agent_name: str,
         tools: Sequence[BaseTool] | None = None,
+        structure_output: dict | None = None,
         model: object | None = None,
     ) -> None:
         self._tools = list(tools or [])
@@ -38,7 +39,7 @@ class BaseAgent:
     #     content = "".join(lines[:-1]).strip()
     #     return (content, direction)
 
-    def set_subgraph(self):
+    def _set_subgraph(self):
         pass
 
     def get_subgraph(self) -> CompiledStateGraph:

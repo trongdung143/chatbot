@@ -47,7 +47,7 @@ def route(state: State) -> str:
 
 
 app.add_node("assigner", assigner.process)
-app.add_node("analyst", analyst.process)
+app.add_node("analyst", analyst.get_subgraph())
 app.add_node("writer", writer.process)
 app.add_node("supervisor", supervisor.process)
 app.add_node("calculator", calculator.process)

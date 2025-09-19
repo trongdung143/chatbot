@@ -30,10 +30,10 @@ class WriterAgent(BaseAgent):
             response = await self._chain.ainvoke(
                 {
                     "task": state.get("messages")
-                    + [annotated_msg, HumanMessage(content=state.get("result"))]
+                    + [annotated_msg, HumanMessage(content=state.get("result").content)]
                 }
             )
-        print("writer", response.content)
+        print("writer", response)
         print("length of messages: ", len(state.get("messages")))
         state.update(
             messages=[response],
@@ -42,13 +42,13 @@ class WriterAgent(BaseAgent):
                 {
                     "agent_name": "writer",
                     "task": state.get("result"),
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             prev_agent="writer",
             next_agent=None,
             task=state.get("result"),
-            result=response.content,
+            result=response,
             human=False,
         )
 

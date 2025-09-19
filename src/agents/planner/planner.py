@@ -27,20 +27,20 @@ class PlannerAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("planner", response.content)
+        print("planner", response)
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [
                 {
                     "agent_name": "planner",
                     "task": state.get("task"),
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             next_agent="writer",
             prev_agent="planner",
             task=state.get("task"),
-            result=response.content,
+            result=response,
             human=None,
         )
         return state

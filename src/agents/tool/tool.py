@@ -27,20 +27,20 @@ class ToolAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("tool", response.content)
+        print("tool", response)
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [
                 {
                     "agent_name": "tool",
                     "task": state.get("task"),
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             next_agent="writer",
             prev_agent="tool",
             task=state.get("task"),
-            result=response.content,
+            result=response,
             human=None,
         )
         return state

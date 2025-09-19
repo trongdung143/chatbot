@@ -4,8 +4,9 @@ from langchain_core.messages import HumanMessage
 
 
 def human_node(state: State) -> State:
-    if state["human"]:
-        edit = interrupt({"AIMessage": state["task"]})
-        state["messages"].append(HumanMessage(content=f"{state["task"]}\n{edit}"))
+    print("human_node")
+    if state.get("human") is True:
+        edit = interrupt({"AIMessage": state.get("result").content})
+        state.update(messages=[HumanMessage(content=f"{state.get("task")}\n{edit}")])
         state["human"] = False
     return state

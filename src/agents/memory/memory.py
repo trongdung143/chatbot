@@ -49,13 +49,13 @@ class MemoryAgent(BaseAgent):
                 {
                     "agent_name": "memory",
                     "task": task,
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             next_agent="assigner",
             prev_agent="memory",
             task=task,
-            result=response.content,
+            result=response,
             human=False,
         )
         return state

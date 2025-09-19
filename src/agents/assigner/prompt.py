@@ -17,11 +17,6 @@ prompt = ChatPromptTemplate.from_messages(
             - Nếu yêu cầu dùng công cụ ngoài (API, file ops, Gmail, Google Drive, ...) → tool
             - Nếu yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → vision
 
-            ⚠️ QUAN TRỌNG:
-            - Output chỉ được phép là duy nhất một trong các từ sau:
-            analyst, coder, planner, search, tool, vision, writer
-            - Không được giải thích, không được thêm ký tự thừa, không dùng dấu ngoặc kép.
-            - Trả về đúng **một token duy nhất**.
             """
         ),
         MessagesPlaceholder("assignment"),

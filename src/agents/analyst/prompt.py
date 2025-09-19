@@ -11,6 +11,7 @@ prompt = ChatPromptTemplate.from_messages(
             - KHÔNG tự giải quyết yêu cầu.
             - Trình bày lại yêu cầu một cách rõ ràng, có cấu trúc.
             - Xác định người dùng muốn gì, các chi tiết chính, và loại đầu ra mong đợi.
+            - Trả về human = True nếu cần con người tham gia, ngược lại False.
             """
         ),
         MessagesPlaceholder("task"),

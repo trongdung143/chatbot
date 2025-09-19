@@ -2,6 +2,7 @@ from fastapi import APIRouter, Cookie, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from typing import Optional, AsyncGenerator
 import json
+import time
 from src.agents.workflow import graph
 from langchain_core.messages import HumanMessage, AIMessage, RemoveMessage
 from src.utils.handler import save_upload_file_into_temp
@@ -59,10 +60,13 @@ async def generate_chat_stream(
             stream_mode=["messages", "updates"],
             subgraphs=True,
         ):
-            _, data_type, chunk = event
-
-            if data_type == "update":
-                pass
+            node_subgraph, data_type, chunk = event
+            if data_type == "updates":
+                if chunk.get("__interrupt__") and not node_subgraph:
+                    for interrupt in chunk["__interrupt__"]:
+                        yield f"data: {json.dumps({'type': 'interrupt',
+                                                    'response': interrupt.value.get("AIMessage")
+                                                }, ensure_ascii=False)}\n\n"
             if data_type == "messages":
                 response, meta = chunk
                 agent = meta.get("langgraph_node", "unknown")

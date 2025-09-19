@@ -1,12 +1,12 @@
 from langgraph.graph import MessagesState
 from typing import TypedDict
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 
 class AgentLog(TypedDict):
     agent_name: str
     task: str
-    result: str
+    result: BaseModel
 
 
 class State(MessagesState):
@@ -15,5 +15,5 @@ class State(MessagesState):
     next_agent: str
     prev_agent: str
     task: str
-    result: str
+    result: BaseModel
     human: bool

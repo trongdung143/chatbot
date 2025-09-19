@@ -1,6 +1,6 @@
 from typing import Sequence
 from time import time
-
+from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
@@ -8,10 +8,14 @@ from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
 from src.agents.analyst.prompt import prompt
+from src.agents.human import human_node
 
 
-class AnalystResponse:
-    pass
+class AnalystResponseFormat(BaseModel):
+    content: str = Field(
+        description="Phân tích lại yêu cầu một cách rõ ràng, có cấu trúc."
+    )
+    human: bool = Field(description="true nếu cần con người tham gia, false nếu không")
 
 
 class AnalystAgent(BaseAgent):
@@ -23,27 +27,35 @@ class AnalystAgent(BaseAgent):
         )
 
         self._prompt = prompt
-        self._chain = self._prompt | self._model
+        self._chain = self._prompt | self._model.with_structured_output(
+            AnalystResponseFormat
+        )
+        self._set_subgraph()
+
+    def _set_subgraph(self):
+        self._sub_graph.add_node(self._agent_name, self.process)
+        self._sub_graph.add_node("human_node", human_node)
+        self._sub_graph.add_edge(self._agent_name, "human_node")
+        self._sub_graph.set_entry_point(self._agent_name)
 
     async def process(self, state: State) -> State:
-        print("analyst")
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("analyst", response.content)
+        print("analyst", response)
         state.update(
             agent_logs=state.get("agent_logs")
             + [
                 {
                     "agent_name": "analyst",
                     "task": state.get("task"),
-                    "result": response.content,
+                    "result": response,
                 }
             ],
             next_agent=None,
             prev_agent="analyst",
             task=state.get("task"),
-            result=response.content,
-            human=None,
+            result=response,
+            human=response.human,
         )
         return state

@@ -33,14 +33,14 @@ class SearchAgent(BaseAgent):
             + [
                 {
                     "agent_name": "search",
-                    "task": response.content,
-                    "result": response.content,
+                    "task": state.get("task"),
+                    "result": response,
                 }
             ],
             next_agent="writer",
             prev_agent="search",
             task=state.get("task"),
-            result=response.content,
+            result=response,
             human=None,
         )
         return state
