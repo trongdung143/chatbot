@@ -27,7 +27,7 @@ class VisionAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("vision", response)
+        print("vision")
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [

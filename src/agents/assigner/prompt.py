@@ -9,14 +9,14 @@ prompt = ChatPromptTemplate.from_messages(
             Nhiệm vụ: quyết định agent chuyên trách nào sẽ xử lý yêu cầu của người dùng.
 
             Quy tắc:
-            - Nếu yêu cầu đơn giản (diễn đạt, viết lại, trả lời ngắn gọn) → writer
-            - Nếu yêu cầu phức tạp (cần suy luận, phân tích, giải quyết vấn đề) → analyst
-            - Nếu yêu cầu liên quan đến lập trình, code, sửa lỗi → coder
-            - Nếu yêu cầu cần lên kế hoạch, bước đi cụ thể → planner
-            - Nếu yêu cầu cần tra cứu thông tin, tìm kiếm dữ liệu → search
-            - Nếu yêu cầu dùng công cụ ngoài (API, file ops, Gmail, Google Drive, ...) → tool
-            - Nếu yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → vision
-
+            - Nếu yêu cầu đơn giản → "writer"
+            - Nếu yêu cầu phức tạp (cần suy luận, phân tích, giải quyết vấn đề) → "analyst"
+            - Nếu yêu cầu liên quan đến lập trình, code, sửa lỗi → "coder"
+            - Nếu yêu cầu cần lập kế hoạch, đưa ra các bước cụ thể → "planner"
+            - Nếu yêu cầu cần tra cứu thông tin, tìm kiếm dữ liệu → "search"
+            - Nếu yêu cầu cần dùng công cụ ngoài (API, file, Gmail, Google Drive, ...) → "tool"
+            - Nếu yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → "vision"
+            - Nếu yêu cầu liên quan đến cảm xúc, phong cách, biểu đạt → "emotive"
             """
         ),
         MessagesPlaceholder("assignment"),

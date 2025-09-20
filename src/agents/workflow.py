@@ -12,6 +12,7 @@ from src.agents.planner.planner import PlannerAgent
 from src.agents.search.search import SearchAgent
 from src.agents.tool.tool import ToolAgent
 from src.agents.vision.vision import VisionAgent
+from src.agents.emotive.emotive import emotiveAgent
 
 app = StateGraph(State)
 
@@ -26,6 +27,7 @@ search = SearchAgent()
 tool = ToolAgent()
 vision = VisionAgent()
 memory = MemoryAgent()
+emotive = emotiveAgent()
 
 
 def route(state: State) -> str:
@@ -40,6 +42,7 @@ def route(state: State) -> str:
         "search",
         "tool",
         "vision",
+        "emotive",
     ]
     if next_agent in VALID_AGENTS:
         return next_agent
@@ -57,6 +60,7 @@ app.add_node("planner", planner.process)
 app.add_node("search", search.process)
 app.add_node("tool", tool.process)
 app.add_node("vision", vision.process)
+app.add_node("emotive", emotive.process)
 
 app.set_entry_point("memory")
 app.add_conditional_edges(
@@ -70,6 +74,7 @@ app.add_conditional_edges(
         "search": "search",
         "tool": "tool",
         "vision": "vision",
+        "emotive": "emotive",
     },
 )
 app.add_conditional_edges(
@@ -85,7 +90,7 @@ app.add_edge("planner", "writer")
 app.add_edge("search", "writer")
 app.add_edge("tool", "writer")
 app.add_edge("vision", "writer")
+app.add_edge("emotive", "__end__")
 app.set_finish_point("writer")
-
 
 graph = app.compile(checkpointer=MemorySaver())

@@ -15,13 +15,10 @@ router = APIRouter()
 async def generate_chat_stream(
     message: str,
     conversation_id: str,
-    file: Optional[UploadFile] = None,
+    file_path: Optional[str] = None,
     messages: Optional[list[dict]] = None,
 ) -> AsyncGenerator[str, None]:
     try:
-        if file:
-            save_upload_file_into_temp(file)
-
         input_state = {
             "messages": [HumanMessage(content=message)],
             "thread_id": conversation_id,
@@ -30,6 +27,7 @@ async def generate_chat_stream(
             "task": None,
             "result": None,
             "human": None,
+            "file_path": file_path,
         }
 
         config = {"configurable": {"thread_id": conversation_id}}
@@ -91,8 +89,11 @@ async def chatbot_stream(
     conversation_id: str = Cookie(None),
     messages: Optional[list[dict]] = Form(None),
 ) -> StreamingResponse:
+    file_path = None
+    if file:
+        file_path = save_upload_file_into_temp(file, conversation_id)
     return StreamingResponse(
-        generate_chat_stream(message, conversation_id, file, messages),
+        generate_chat_stream(message, conversation_id, file_path, messages),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",

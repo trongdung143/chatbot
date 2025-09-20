@@ -11,7 +11,7 @@ from src.agents.assigner.prompt import prompt
 
 class AssignerResponseFormat(BaseModel):
     next_agent: str = Field(
-        description="Tên agent tiếp theo, 'analyst', 'coder', 'planner', 'search', 'tool', 'vision', 'writer'"
+        description="Tên agent tiếp theo, 'analyst', 'coder', 'planner', 'search', 'tool', 'vision', 'writer', 'emotive'"
     )
     content: str = Field(description="không trả lời, không giải thích gì cả")
 
@@ -33,7 +33,7 @@ class AssignerAgent(BaseAgent):
     async def process(self, state: State) -> State:
 
         response = await self._chain.ainvoke({"assignment": state.get("messages")})
-        print("assigner", response)
+        print("assigner", response.next_agent)
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [

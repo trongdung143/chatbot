@@ -27,7 +27,7 @@ class SearchAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("search", response.content)
+        print("search")
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [

@@ -41,7 +41,7 @@ class MemoryAgent(BaseAgent):
         else:
             task = "skiped"
             response = SystemMessage(content="messages < 10")
-        print("memory", response.content)
+        print("memory")
         state.update(
             messages=messages,
             agent_logs=state.get("agent_logs", [])

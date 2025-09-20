@@ -40,6 +40,7 @@ class SupervisorAgent(BaseAgent):
         print("supervisor", response)
 
         state.update(
+            messages=[state.get("result").content],
             agent_logs=state.get("agent_logs", [])
             + [
                 {

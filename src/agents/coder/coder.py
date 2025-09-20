@@ -26,7 +26,7 @@ class CoderAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("coder", response)
+        print("coder")
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [

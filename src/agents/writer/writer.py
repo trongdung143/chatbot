@@ -33,8 +33,9 @@ class WriterAgent(BaseAgent):
                     + [annotated_msg, HumanMessage(content=state.get("result").content)]
                 }
             )
-        print("writer", response)
+        print("writer")
         print("length of messages: ", len(state.get("messages")))
+        print(state.get("messages"))
         state.update(
             messages=[response],
             agent_logs=state.get("agent_logs", [])

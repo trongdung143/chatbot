@@ -27,7 +27,7 @@ class ToolAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("tool", response)
+        print("tool")
         state.update(
             agent_logs=state.get("agent_logs", [])
             + [

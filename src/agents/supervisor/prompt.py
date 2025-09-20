@@ -9,6 +9,7 @@ prompt = ChatPromptTemplate.from_messages(
 
             Nhiệm vụ:
             - Quyết định agent tiếp theo "next_agent".
+            - Nếu yêu cầu đơn giản, không cần phân tích thêm, hãy chuyển trực tiếp đến "writer", ngược lại chuyển đến "calculator".
             """
         ),
         MessagesPlaceholder("supervision"),

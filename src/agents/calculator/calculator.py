@@ -27,7 +27,7 @@ class CalculatorAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("result").content)]}
         )
-        print("calculator", response)
+        print("calculator")
         state.update(
             agent_logs=state.get("agent_logs")
             + [

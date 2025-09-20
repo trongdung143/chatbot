@@ -15,7 +15,7 @@ class AnalystResponseFormat(BaseModel):
     content: str = Field(
         description="Phân tích lại yêu cầu một cách rõ ràng, có cấu trúc."
     )
-    human: bool = Field(description="true nếu cần con người tham gia, false nếu không")
+    human: bool = Field(description="True nếu cần con người tham gia, False nếu không")
 
 
 class AnalystAgent(BaseAgent):
@@ -42,8 +42,9 @@ class AnalystAgent(BaseAgent):
         response = await self._chain.ainvoke(
             {"task": [HumanMessage(content=state.get("task"))]}
         )
-        print("analyst", response)
+        print("analyst")
         state.update(
+            messages=[response],
             agent_logs=state.get("agent_logs")
             + [
                 {
@@ -52,7 +53,7 @@ class AnalystAgent(BaseAgent):
                     "result": response,
                 }
             ],
-            next_agent=None,
+            next_agent="supervisor",
             prev_agent="analyst",
             task=state.get("task"),
             result=response,
