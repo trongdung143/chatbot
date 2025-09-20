@@ -23,24 +23,22 @@ class PlannerAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-
-        response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state.get("task"))]}
-        )
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        result = None
+        response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
+        result = f"[Kế Hoạch] {response.content}"
         print("planner")
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
+
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            agent_logs=state.get("agent_logs", [])
-            + [
-                {
-                    "agent_name": "planner",
-                    "task": state.get("task"),
-                    "result": response,
-                }
-            ],
+            human=False,
             next_agent="writer",
-            prev_agent="planner",
-            task=state.get("task"),
-            result=response,
-            human=None,
+            prev_agent=self._agent_name,
+            tasks=current_tasks,
+            results=current_results,
         )
         return state

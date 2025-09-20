@@ -6,6 +6,6 @@ from langchain_core.messages import HumanMessage
 def human_node(state: State) -> State:
     if state.get("human") is True:
         print("human")
-        edit = interrupt({"AIMessage": state.get("result").content})
-        state.update(result=HumanMessage(content=edit))
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        edit = interrupt({"AIMessage": task})
     return state

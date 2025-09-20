@@ -25,30 +25,24 @@ class emotiveAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         print("emotive")
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        result = None
         content = extract_text_from_pdf(state)
-        print(content)
         response = await self._chain.ainvoke(
-            {
-                "task": [
-                    HumanMessage(
-                        content=f"[Nội Dung]\n{content}\n[Yêu Cầu]\n{state.get('task')}"
-                    )
-                ]
-            }
+            {"task": [HumanMessage(content=f"[Nội Dung] {content}\n[Yêu Cầu] {task}")]}
         )
+        result = response.content
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
+
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            agent_logs=state.get("agent_logs")
-            + [
-                {
-                    "agent_name": "emotive",
-                    "task": state.get("task"),
-                    "result": response,
-                }
-            ],
-            next_agent=None,
-            prev_agent="emotive",
-            task=state.get("task"),
-            result=response,
             human=False,
+            next_agent=None,
+            prev_agent=self._agent_name,
+            tasks=current_tasks,
+            results=current_results,
         )
         return state

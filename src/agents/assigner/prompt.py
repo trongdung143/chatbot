@@ -16,7 +16,7 @@ prompt = ChatPromptTemplate.from_messages(
             - Nếu yêu cầu cần tra cứu thông tin, tìm kiếm dữ liệu → "search"
             - Nếu yêu cầu cần dùng công cụ ngoài (API, file, Gmail, Google Drive, ...) → "tool"
             - Nếu yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → "vision"
-            - Nếu yêu cầu liên quan đến cảm xúc, phong cách, biểu đạt → "emotive"
+            - Nếu yêu cầu liên quan đến phong cách, biểu đạt → "emotive"
             """
         ),
         MessagesPlaceholder("assignment"),

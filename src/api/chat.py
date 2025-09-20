@@ -2,7 +2,7 @@ from fastapi import APIRouter, Cookie, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from typing import Optional, AsyncGenerator
 import json
-import time
+import os
 from src.agents.workflow import graph
 from langchain_core.messages import HumanMessage, AIMessage, RemoveMessage
 from src.utils.handler import save_upload_file_into_temp
@@ -10,6 +10,13 @@ from langgraph.types import Command
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 router = APIRouter()
+agents_dir = "src/agents"
+
+agents = [
+    name
+    for name in os.listdir(agents_dir)
+    if os.path.isdir(os.path.join(agents_dir, name))
+]
 
 
 async def generate_chat_stream(
@@ -22,11 +29,11 @@ async def generate_chat_stream(
         input_state = {
             "messages": [HumanMessage(content=message)],
             "thread_id": conversation_id,
-            "next_agent": None,
+            "human": False,
+            "next_agent": "memory",
             "prev_agent": None,
-            "task": None,
-            "result": None,
-            "human": None,
+            "tasks": {agent: [] for agent in agents},
+            "results": {agent: [] for agent in agents},
             "file_path": file_path,
         }
 

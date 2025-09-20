@@ -21,36 +21,36 @@ class WriterAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        result = None
         if state["prev_agent"] == "assigner":
             response = await self._chain.ainvoke({"task": state.get("messages")})
         else:
-            annotated_msg = SystemMessage(
-                content=f"NOTE: The following is the result from the {state.get("prev_agent")} agent, not the user.\n"
-            )
             response = await self._chain.ainvoke(
                 {
-                    "task": state.get("messages")
-                    + [annotated_msg, HumanMessage(content=state.get("result").content)]
+                    "task": [
+                        HumanMessage(
+                            content=f"Từ kết quả của agent trước hãy xử lý tiếp {task}"
+                        )
+                    ]
                 }
             )
+        result = response.content
         print("writer")
         print("length of messages: ", len(state.get("messages")))
-        print(state.get("messages"))
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
+
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
             messages=[response],
-            agent_logs=state.get("agent_logs", [])
-            + [
-                {
-                    "agent_name": "writer",
-                    "task": state.get("result"),
-                    "result": response,
-                }
-            ],
-            prev_agent="writer",
-            next_agent=None,
-            task=state.get("result"),
-            result=response,
             human=False,
+            prev_agent=self._agent_name,
+            next_agent=None,
+            tasks=current_tasks,
+            results=current_results,
         )
 
         return state

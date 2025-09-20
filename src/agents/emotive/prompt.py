@@ -16,8 +16,8 @@ prompt = ChatPromptTemplate.from_messages(
               + Một diễn giả truyền cảm hứng
               + Một chuyên gia nghiêm túc
             - Giữ ý nghĩa chính xác của nội dung gốc nhưng thay đổi giọng điệu, từ ngữ, phong cách diễn đạt để phù hợp với vai trò/cảm xúc.
-            - Nếu người dùng không nêu rõ vai trò, hãy tự chọn phong cách tự nhiên và dễ đọc.
             - Chỉ trả về văn bản đã viết lại theo vai trò/cảm xúc, không giải thích thêm.
+            - Toàn bộ nội dung đều phải được viết lại hết.
             """
         ),
         MessagesPlaceholder("task"),

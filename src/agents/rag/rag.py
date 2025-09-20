@@ -3,22 +3,16 @@ from langchain_core.tools.base import BaseTool
 from time import time
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
-from langchain_core.messages import (
-    HumanMessage,
-    AIMessage,
-    SystemMessage,
-    RemoveMessage,
-)
-from langgraph.graph.message import REMOVE_ALL_MESSAGES
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
-from src.agents.memory.prompt import prompt
+from src.agents.calculator.prompt import prompt
 
 
-class MemoryAgent(BaseAgent):
+class CalculatorAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
-            agent_name="memory",
+            agent_name="calculator",
             tools=tools,
             model=None,
         )
@@ -28,33 +22,22 @@ class MemoryAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        task = None
+        task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
-        messages = state.get("messages")
-        if len(messages) >= 10:
-            last_msg = messages[-1]
-            task = "summary"
-            response = await self._chain.ainvoke({"task": messages[:-1]})
-            delete_msg = [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
-            messages = delete_msg + [SystemMessage(content=response.content), last_msg]
-        else:
-            task = "skiped"
-            response = SystemMessage(content="messages < 10")
-        print("memory")
+        response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
+        result = f"[Kết quả tính toán] {response.content}"
+        print("calculator")
         current_tasks = state.get("tasks", {})
         current_results = state.get("results", {})
 
         current_tasks.setdefault(self._agent_name, []).append(task)
 
-        current_results.setdefault(self._agent_name, []).append(response.content)
-
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            messages=messages,
             human=False,
-            next_agent="assigner",
+            next_agent="writer",
             prev_agent=self._agent_name,
             tasks=current_tasks,
             results=current_results,
         )
-
         return state

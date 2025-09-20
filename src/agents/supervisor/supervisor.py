@@ -33,27 +33,25 @@ class SupervisorAgent(BaseAgent):
         )
 
     async def process(self, state: State) -> State:
-
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        result = None
         response = await self._chain.ainvoke(
-            {"supervision": [HumanMessage(content=state.get("result").content)]}
+            {"supervision": [HumanMessage(content=task)]}
         )
         print("supervisor", response)
+        result = f"[Từ kết quả phân tích của agent] {task} bạn hãy xử lý tiếp"
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
 
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            messages=[state.get("result").content],
-            agent_logs=state.get("agent_logs", [])
-            + [
-                {
-                    "agent_name": "supervisor",
-                    "task": "direction",
-                    "result": response,
-                }
-            ],
-            next_agent=response.next_agent,
-            prev_agent=state.get("prev_agent"),
-            task=state.get("result"),
-            result=response,
             human=False,
+            next_agent=response.next_agent,
+            prev_agent=self._agent_name,
+            tasks=current_tasks,
+            results=current_results,
         )
 
         return state

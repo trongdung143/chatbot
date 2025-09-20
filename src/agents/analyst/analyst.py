@@ -39,24 +39,23 @@ class AnalystAgent(BaseAgent):
         self._sub_graph.set_entry_point(self._agent_name)
 
     async def process(self, state: State) -> State:
-        response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=state.get("task"))]}
-        )
+        task = state.get("results").get(state.get("prev_agent"))[-1]
+        result = None
+        response = await self._chain.ainvoke({"task": state.get("messages")})
+        result = f"[Kết quả phân tích] {response.content}"
         print("analyst")
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
+
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            messages=[response],
-            agent_logs=state.get("agent_logs")
-            + [
-                {
-                    "agent_name": "analyst",
-                    "task": state.get("task"),
-                    "result": response,
-                }
-            ],
-            next_agent="supervisor",
-            prev_agent="analyst",
-            task=state.get("task"),
-            result=response,
+            messages=[AIMessage(content=response.content)],
             human=response.human,
+            next_agent="supervisor",
+            prev_agent=self._agent_name,
+            tasks=current_tasks,
+            results=current_results,
         )
         return state

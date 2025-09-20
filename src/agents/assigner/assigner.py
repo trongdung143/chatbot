@@ -13,7 +13,7 @@ class AssignerResponseFormat(BaseModel):
     next_agent: str = Field(
         description="Tên agent tiếp theo, 'analyst', 'coder', 'planner', 'search', 'tool', 'vision', 'writer', 'emotive'"
     )
-    content: str = Field(description="không trả lời, không giải thích gì cả")
+    content: str = Field(description="Chuyển yêu cầu cho agent khác xử lý.")
 
 
 class AssignerAgent(BaseAgent):
@@ -31,23 +31,23 @@ class AssignerAgent(BaseAgent):
         )
 
     async def process(self, state: State) -> State:
-
+        task = state.get("messages")[-1].content
+        result = None
         response = await self._chain.ainvoke({"assignment": state.get("messages")})
+        result = f"[Yêu cầu]{response.content} {task} bạn hãy xử lý tiếp"
         print("assigner", response.next_agent)
+        current_tasks = state.get("tasks", {})
+        current_results = state.get("results", {})
+
+        current_tasks.setdefault(self._agent_name, []).append(task)
+
+        current_results.setdefault(self._agent_name, []).append(result)
         state.update(
-            agent_logs=state.get("agent_logs", [])
-            + [
-                {
-                    "agent_name": "assigner",
-                    "task": state.get("messages")[-1].content,
-                    "result": response,
-                }
-            ],
-            next_agent=response.next_agent,
-            prev_agent="assigner",
-            task=state.get("messages")[-1].content,
-            result=response,
             human=False,
+            next_agent=response.next_agent,
+            prev_agent=self._agent_name,
+            tasks=current_tasks,
+            results=current_results,
         )
 
         return state

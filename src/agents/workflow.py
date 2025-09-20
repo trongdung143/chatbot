@@ -10,8 +10,6 @@ from src.agents.coder.coder import CoderAgent
 from src.agents.memory.memory import MemoryAgent
 from src.agents.planner.planner import PlannerAgent
 from src.agents.search.search import SearchAgent
-from src.agents.tool.tool import ToolAgent
-from src.agents.vision.vision import VisionAgent
 from src.agents.emotive.emotive import emotiveAgent
 
 app = StateGraph(State)
@@ -24,8 +22,6 @@ supervisor = SupervisorAgent()
 coder = CoderAgent()
 planner = PlannerAgent()
 search = SearchAgent()
-tool = ToolAgent()
-vision = VisionAgent()
 memory = MemoryAgent()
 emotive = emotiveAgent()
 
@@ -50,7 +46,7 @@ def route(state: State) -> str:
 
 
 app.add_node("assigner", assigner.process)
-app.add_node("analyst", analyst.get_subgraph())
+app.add_node("analyst", analyst.process)
 app.add_node("writer", writer.process)
 app.add_node("supervisor", supervisor.process)
 app.add_node("calculator", calculator.process)
@@ -58,8 +54,6 @@ app.add_node("coder", coder.process)
 app.add_node("memory", memory.process)
 app.add_node("planner", planner.process)
 app.add_node("search", search.process)
-app.add_node("tool", tool.process)
-app.add_node("vision", vision.process)
 app.add_node("emotive", emotive.process)
 
 app.set_entry_point("memory")
@@ -72,8 +66,6 @@ app.add_conditional_edges(
         "coder": "coder",
         "planner": "planner",
         "search": "search",
-        "tool": "tool",
-        "vision": "vision",
         "emotive": "emotive",
     },
 )
@@ -88,8 +80,6 @@ app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")
 app.add_edge("planner", "writer")
 app.add_edge("search", "writer")
-app.add_edge("tool", "writer")
-app.add_edge("vision", "writer")
 app.add_edge("emotive", "__end__")
 app.set_finish_point("writer")
 
