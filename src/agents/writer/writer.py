@@ -33,7 +33,7 @@ class WriterAgent(BaseAgent):
                     {
                         "task": [
                             HumanMessage(
-                                content=f"Từ kết quả của agent trước hãy trả lời {task}"
+                                content=f"Từ kết quả của agent trước đó {task} xử lý tiếp"
                             )
                         ]
                     }
