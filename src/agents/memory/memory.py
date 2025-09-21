@@ -1,18 +1,15 @@
 from typing import Sequence
-from langchain_core.tools.base import BaseTool
-from time import time
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.tools.base import BaseTool
+
 from langchain_core.messages import (
-    HumanMessage,
-    AIMessage,
     SystemMessage,
     RemoveMessage,
 )
+from langchain_core.tools.base import BaseTool
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
+
 from src.agents.base import BaseAgent
-from src.agents.state import State
 from src.agents.memory.prompt import prompt
+from src.agents.state import State
 
 
 class MemoryAgent(BaseAgent):
@@ -31,30 +28,28 @@ class MemoryAgent(BaseAgent):
         task = None
         result = None
         messages = state.get("messages")
-        if len(messages) >= 10:
-            last_msg = messages[-1]
-            task = "summary"
-            response = await self._chain.ainvoke({"task": messages[:-1]})
-            delete_msg = [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
-            messages = delete_msg + [SystemMessage(content=response.content), last_msg]
-        else:
-            task = "skiped"
-            response = SystemMessage(content="messages < 10")
-        print("memory")
-        current_tasks = state.get("tasks", {})
-        current_results = state.get("results", {})
-
-        current_tasks.setdefault(self._agent_name, []).append(task)
-
-        current_results.setdefault(self._agent_name, []).append(response.content)
-
-        state.update(
-            messages=messages,
-            human=False,
-            next_agent="assigner",
-            prev_agent=self._agent_name,
-            tasks=current_tasks,
-            results=current_results,
-        )
-
+        print("length of messages: ", len(messages) + 1)
+        try:
+            if len(messages) >= 10:
+                last_msg = messages[-1]
+                task = "summary"
+                response = await self._chain.ainvoke({"task": messages[:-1]})
+                delete_msg = [RemoveMessage(id=REMOVE_ALL_MESSAGES)]
+                messages = delete_msg + [SystemMessage(content=response.content), last_msg]
+            else:
+                task = "skiped"
+                response = SystemMessage(content="messages < 10")
+            result = response.content
+            current_tasks, current_results = self.update_work(state, task, result)
+            state.update(
+                messages=messages,
+                human=False,
+                next_agent="assigner",
+                prev_agent=self._agent_name,
+                tasks=current_tasks,
+                results=current_results,
+            )
+            print("memory")
+        except Exception as e:
+            print("ERROR ", self._agent_name)
         return state

@@ -13,3 +13,4 @@ pypdf
 pydantic
 langgraph
 python-multipart
+langsmith

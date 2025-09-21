@@ -18,6 +18,7 @@ agents = [
     if os.path.isdir(os.path.join(agents_dir, name))
 ]
 
+agents.remove("__pycache__")
 
 async def generate_chat_stream(
     message: str,

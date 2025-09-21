@@ -8,7 +8,6 @@ import os
 class State(MessagesState):
     thread_id: str
     human: bool
-    agent_logs: list[dict] = Field(default_factory=list)
     next_agent: str | None
     prev_agent: str | None
     tasks: dict[str, list[str]] = Field(default_factory=dict)

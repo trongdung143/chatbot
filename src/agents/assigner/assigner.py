@@ -33,21 +33,19 @@ class AssignerAgent(BaseAgent):
     async def process(self, state: State) -> State:
         task = state.get("messages")[-1].content
         result = None
-        response = await self._chain.ainvoke({"assignment": state.get("messages")})
-        result = f"[Yêu cầu]{response.content} {task} bạn hãy xử lý tiếp"
-        print("assigner", response.next_agent)
-        current_tasks = state.get("tasks", {})
-        current_results = state.get("results", {})
+        try:
+            response = await self._chain.ainvoke({"assignment": state.get("messages")})
+            result = f"[Yêu cầu] {response.content}"
 
-        current_tasks.setdefault(self._agent_name, []).append(task)
-
-        current_results.setdefault(self._agent_name, []).append(result)
-        state.update(
-            human=False,
-            next_agent=response.next_agent,
-            prev_agent=self._agent_name,
-            tasks=current_tasks,
-            results=current_results,
-        )
-
+            current_tasks, current_results = self.update_work(state, task, result)
+            state.update(
+                human=False,
+                next_agent=response.next_agent,
+                prev_agent=self._agent_name,
+                tasks=current_tasks,
+                results=current_results,
+            )
+            print("assigner")
+        except Exception as e:
+            print("ERROR ", self._agent_name)
         return state

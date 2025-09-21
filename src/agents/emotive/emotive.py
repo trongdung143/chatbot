@@ -24,25 +24,24 @@ class emotiveAgent(BaseAgent):
         self._set_subgraph()
 
     async def process(self, state: State) -> State:
-        print("emotive")
+
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
-        content = extract_text_from_pdf(state)
-        response = await self._chain.ainvoke(
-            {"task": [HumanMessage(content=f"[Nội Dung] {content}\n[Yêu Cầu] {task}")]}
-        )
-        result = response.content
-        current_tasks = state.get("tasks", {})
-        current_results = state.get("results", {})
-
-        current_tasks.setdefault(self._agent_name, []).append(task)
-
-        current_results.setdefault(self._agent_name, []).append(result)
-        state.update(
-            human=False,
-            next_agent=None,
-            prev_agent=self._agent_name,
-            tasks=current_tasks,
-            results=current_results,
-        )
+        try:
+            content = extract_text_from_pdf(state)
+            response = await self._chain.ainvoke(
+                {"task": [HumanMessage(content=f"[Nội Dung] {content}\n[Yêu Cầu] {task}")]}
+            )
+            result = response.content
+            current_tasks, current_results = self.update_work(state, task, result)
+            state.update(
+                human=False,
+                next_agent=None,
+                prev_agent=self._agent_name,
+                tasks=current_tasks,
+                results=current_results,
+            )
+            print("emotive")
+        except Exception as e:
+            print("ERROR ", self._agent_name)
         return state

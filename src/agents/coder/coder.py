@@ -24,20 +24,18 @@ class CoderAgent(BaseAgent):
     async def process(self, state: State) -> State:
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
-        response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
-        result = f"[Kết quả code] {response.content}"
-        print("coder")
-        current_tasks = state.get("tasks", {})
-        current_results = state.get("results", {})
-
-        current_tasks.setdefault(self._agent_name, []).append(task)
-
-        current_results.setdefault(self._agent_name, []).append(result)
-        state.update(
-            human=False,
-            next_agent="writer",
-            prev_agent=self._agent_name,
-            tasks=current_tasks,
-            results=current_results,
-        )
+        try:
+            response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
+            result = f"[Kết quả code] {response.content}"
+            current_tasks, current_results = self.update_work(state, task, result)
+            state.update(
+                human=False,
+                next_agent="writer",
+                prev_agent=self._agent_name,
+                tasks=current_tasks,
+                results=current_results,
+            )
+            print("coder")
+        except Exception as e:
+            print("ERROR ", self._agent_name)
         return state

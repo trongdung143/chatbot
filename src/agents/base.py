@@ -1,13 +1,12 @@
 from typing import Sequence
+
 from langchain_core.tools.base import BaseTool
 from langchain_google_genai import ChatGoogleGenerativeAI
-from src.config.setup import GOOGLE_API_KEY
-from src.agents.state import State
 from langgraph.graph import StateGraph
-from langgraph.prebuilt import ToolNode, tools_condition
-import json
-from src.agents.human import human_node
 from langgraph.graph.state import CompiledStateGraph
+
+from src.agents.state import State
+from src.config.setup import GOOGLE_API_KEY
 
 
 class BaseAgent:
@@ -61,3 +60,16 @@ class BaseAgent:
         # graph.set_entry_point(self._agent_name)
         # graph.set_finish_point("human_node")
         return self._sub_graph.compile(name=self._agent_name)
+
+    def update_work(
+            self, state: State, task: str, result: str
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
+        current_tasks: dict[str, list[str]] = state.get("tasks", {})
+        current_results: dict[str, list[str]] = state.get("results", {})
+
+        agent_name = self._agent_name
+
+        current_tasks[agent_name].append(task)
+        current_results[agent_name].append(result)
+
+        return current_tasks, current_results

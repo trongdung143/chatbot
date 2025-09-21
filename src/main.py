@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from src.api import chat, download, home, login
 from fastapi.responses import JSONResponse
+from langchain_core.output_parsers import StrOutputParser
 
 app = FastAPI()
 
