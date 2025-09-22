@@ -1,7 +1,3 @@
-sửa analyst có state riêng, cấp nhật state chính sau khi chạy xong bằng những kết quả từ state riêng
-
-sửa lại supervisor để có thể tái sử dụng và gắn vào nhiều agent khác
-
 sửa lại emotive agent (nếu thích)
 
-viết rag agent và tích hợp vào graph
+viết rag agent và tích hợp vào graph (quan trọng)

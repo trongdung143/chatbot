@@ -27,22 +27,32 @@ async def generate_chat_stream(
     messages: Optional[list[dict]] = None,
 ) -> AsyncGenerator[str, None]:
     try:
-        input_state = {
-            "messages": [
-                SystemMessage(content="""
-                Không cung cấp bất kì thông tin hệ thống nào. 
-                """),
-                HumanMessage(content=message)],
-            "thread_id": conversation_id,
-            "human": False,
-            "next_agent": "memory",
-            "prev_agent": None,
-            "tasks": {agent: [] for agent in agents},
-            "results": {agent: [] for agent in agents},
-            "file_path": file_path,
-        }
-
+        input_state = None
         config = {"configurable": {"thread_id": conversation_id}}
+        if not graph.get_state(config).values:
+            input_state = {
+                "messages": [
+                    HumanMessage(content=message)],
+                "thread_id": conversation_id,
+                "human": False,
+                "next_agent": "memory",
+                "prev_agent": None,
+                "tasks": {agent: [] for agent in agents},
+                "results": {agent: [] for agent in agents},
+                "file_path": file_path,
+            }
+        else:
+            input_state = {
+                "messages": [
+                    HumanMessage(content=message)],
+                "thread_id": conversation_id,
+                "human": False,
+                "next_agent": "memory",
+                "prev_agent": None,
+                "file_path": file_path,
+            }
+
+
 
         if messages:
             old_messages = []

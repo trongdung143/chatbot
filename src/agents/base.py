@@ -12,11 +12,11 @@ from src.config.setup import GOOGLE_API_KEY
 class BaseAgent:
     def __init__(
         self,
-        agent_name: str,
-        tools: Sequence[BaseTool] | None = None,
-        state: type[State] = State,
-        structure_output: dict | None = None,
-        model: object | None = None,
+            agent_name: str,
+            tools: Sequence[BaseTool] | None = None,
+            state: type[State] = State,
+            structure_output: dict | None = None,
+            model: object | None = None,
     ) -> None:
         self._tools = list(tools or [])
         self._agent_name = agent_name
@@ -67,10 +67,9 @@ class BaseAgent:
     ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
         current_tasks: dict[str, list[str]] = state.get("tasks", {})
         current_results: dict[str, list[str]] = state.get("results", {})
-
         agent_name = self._agent_name
 
-        current_tasks[agent_name].append(task)
-        current_results[agent_name].append(result)
+        current_tasks.setdefault(agent_name, []).append(task)
+        current_results.setdefault(agent_name, []).append(result)
 
         return current_tasks, current_results

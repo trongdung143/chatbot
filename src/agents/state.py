@@ -10,6 +10,6 @@ class State(MessagesState):
     human: bool
     next_agent: str | None
     prev_agent: str | None
-    tasks: dict[str, list[str]] = Field(default_factory=dict)
-    results: dict[str, list[str]] = Field(default_factory=dict)
+    tasks: dict[str, list[str]]
+    results: dict[str, list[str]]
     file_path: str | None = None

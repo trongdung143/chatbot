@@ -20,7 +20,7 @@ prompt = ChatPromptTemplate.from_messages(
             - Yêu cầu tra cứu thông tin, tìm kiếm dữ liệu → "search"
             - Yêu cầu dùng công cụ ngoài (API, file, Gmail, Google Drive, …) → "tool"
             - Yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → "vision"
-            - Yêu cầu về phong cách, cảm xúc, biểu đạt → "emotive"
+            - Yêu cầu về là viết lại → "emotive"
             - Yêu cầu cần truy xuất kiến thức từ cơ sở dữ liệu, vector store hoặc tài liệu đã lưu → "rag""
             """
         ),
