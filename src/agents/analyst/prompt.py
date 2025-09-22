@@ -15,7 +15,6 @@ prompt = ChatPromptTemplate.from_messages(
             + Người dùng thực sự muốn gì.
             + Các chi tiết chính trong yêu cầu.
             + Loại đầu ra mong đợi.
-            - Nếu yêu cầu chưa rõ ràng, cần thêm thông tin → human là True, ngược lại False.
             """
         ),
         MessagesPlaceholder("task"),

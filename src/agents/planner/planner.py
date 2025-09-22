@@ -26,7 +26,7 @@ class PlannerAgent(BaseAgent):
         result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
-            result = f"[Kế Hoạch] {response.content}"
+            result = f"### Kế Hoạch (planner)\n{response.content}"
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(
                 human=False,

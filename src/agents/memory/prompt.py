@@ -14,9 +14,9 @@ prompt = ChatPromptTemplate.from_messages(
             - Giữ tóm tắt ngắn gọn, rõ ràng, nhưng đủ ý để hiểu lại toàn bộ hội thoại trong tương lai.
 
             Output (chỉ bản tóm tắt, không thêm giải thích khác):
-            [USER]
+            ### USER
             <tóm tắt các phát ngôn từ user>
-            [AI]
+            ### AI
             <tóm tắt các phản hồi từ AI>
             """
         ),

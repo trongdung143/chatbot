@@ -1,14 +1,16 @@
+import os
+import shutil
 from typing import Sequence
-from time import time
-from pydantic import BaseModel, Field
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.tools.base import BaseTool
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 
+import fitz
+from langchain_core.messages import HumanMessage
+from langchain_core.tools.base import BaseTool
+
+import src.agents.emotive.prompt
 from src.agents.base import BaseAgent
 from src.agents.state import State
-from src.agents.emotive.prompt import prompt
-from src.agents.utils import extract_text_from_pdf
+
+
 
 
 class emotiveAgent(BaseAgent):
@@ -19,18 +21,30 @@ class emotiveAgent(BaseAgent):
             model=None,
         )
 
-        self._prompt = prompt
+        self._prompt = src.agents.emotive.prompt.prompt
         self._chain = self._prompt | self._model
         self._set_subgraph()
+
+    def _extract_text_from_pdf(self, state: State) -> str:
+        save_dir = "src/data/temp"
+        data_path = os.path.join(save_dir, state.get("thread_id"), state.get("file_path"))
+        if not os.path.exists(data_path):
+            raise FileNotFoundError(f"PDF not found at: {data_path}")
+
+        with fitz.open(data_path) as doc:
+            text = "".join(page.get_text() for page in doc)
+        shutil.rmtree(os.path.join(save_dir, state.get("thread_id")))
+        print("extracting text from pdf")
+        return text
 
     async def process(self, state: State) -> State:
 
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            content = extract_text_from_pdf(state)
+            content = self._extract_text_from_pdf(state)
             response = await self._chain.ainvoke(
-                {"task": [HumanMessage(content=f"[Nội Dung] {content}\n[Yêu Cầu] {task}")]}
+                {"task": [HumanMessage(content=f"### Nội Dung\n{content}\n\n### Yêu Cầu\n{task}")]}
             )
             result = response.content
             current_tasks, current_results = self.update_work(state, task, result)

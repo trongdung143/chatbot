@@ -14,6 +14,7 @@ class BaseAgent:
         self,
         agent_name: str,
         tools: Sequence[BaseTool] | None = None,
+        state: type[State] = State,
         structure_output: dict | None = None,
         model: object | None = None,
     ) -> None:
@@ -26,7 +27,7 @@ class BaseAgent:
             disable_streaming=False,
         ).bind_tools(self._tools)
 
-        self._sub_graph = StateGraph(State)
+        self._sub_graph = StateGraph(state)
 
     async def process(self, state: State) -> State:
         return state

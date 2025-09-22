@@ -35,7 +35,7 @@ class AssignerAgent(BaseAgent):
         result = None
         try:
             response = await self._chain.ainvoke({"assignment": state.get("messages")})
-            result = f"[Yêu cầu] {response.content}"
+            result = f"### Yêu cầu (user)\n{response.content}"
 
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(

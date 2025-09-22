@@ -33,12 +33,12 @@ class WriterAgent(BaseAgent):
                     {
                         "task": [
                             HumanMessage(
-                                content=f"Từ kết quả của agent trước đó {task} xử lý tiếp"
+                                content=f"{task}\n\n### Xử lý tiếp"
                             )
                         ]
                     }
                 )
-            result = response.content
+            result = f"### Kết quả (writer)\n{response.content}"
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(
                 messages=[response],

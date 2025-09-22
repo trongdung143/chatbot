@@ -26,7 +26,7 @@ class CoderAgent(BaseAgent):
         result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
-            result = f"[Kết quả code] {response.content}"
+            result = f"### Kết quả code (coder)\n{response.content}"
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(
                 human=False,

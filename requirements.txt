@@ -1,5 +1,4 @@
-langchain 
-faiss-cpu
+langchain
 langchain-community 
 fastapi
 uvicorn
@@ -14,3 +13,5 @@ pydantic
 langgraph
 python-multipart
 langsmith
+tavily-python
+chromadb

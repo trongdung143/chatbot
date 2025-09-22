@@ -5,7 +5,6 @@ from src.agents.writer.writer import WriterAgent
 from src.agents.assigner.assigner import AssignerAgent
 from src.agents.state import State
 from src.agents.calculator.calculator import CalculatorAgent
-from src.agents.supervisor.supervisor import SupervisorAgent
 from src.agents.coder.coder import CoderAgent
 from src.agents.memory.memory import MemoryAgent
 from src.agents.planner.planner import PlannerAgent
@@ -18,7 +17,6 @@ assigner = AssignerAgent()
 analyst = AnalystAgent()
 writer = WriterAgent()
 calculator = CalculatorAgent()
-supervisor = SupervisorAgent()
 coder = CoderAgent()
 planner = PlannerAgent()
 search = SearchAgent()
@@ -46,9 +44,8 @@ def route(state: State) -> str:
 
 
 app.add_node("assigner", assigner.process)
-app.add_node("analyst", analyst.get_subgraph())
+app.add_node("analyst", analyst.process)
 app.add_node("writer", writer.process)
-app.add_node("supervisor", supervisor.process)
 app.add_node("calculator", calculator.process)
 app.add_node("coder", coder.process)
 app.add_node("memory", memory.process)
@@ -57,6 +54,7 @@ app.add_node("search", search.process)
 app.add_node("emotive", emotive.process)
 
 app.set_entry_point("memory")
+app.add_edge("memory", "assigner")
 app.add_conditional_edges(
     "assigner",
     route,
@@ -70,12 +68,10 @@ app.add_conditional_edges(
     },
 )
 app.add_conditional_edges(
-    "supervisor",
+    "analyst",
     route,
-    {"calculator": "calculator", "writer": "writer"},
+    {"calculator" : "calculator", "writer" : "writer",},
 )
-app.add_edge("memory", "assigner")
-app.add_edge("analyst", "supervisor")
 app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")
 app.add_edge("planner", "writer")

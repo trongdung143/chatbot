@@ -10,7 +10,7 @@ prompt = ChatPromptTemplate.from_messages(
             Nhiệm vụ:
             - Phân tích yêu cầu của người dùng.
             - Quyết định agent chuyên trách phù hợp để xử lý.
-            - Nếu cần, bổ sung mô tả ngắn gọn cho nhiệm vụ của agent tiếp theo.
+            - Mô tả ngắn gọn cho nhiệm vụ của agent tiếp theo.
 
             Quy tắc phân công:
             - Yêu cầu đơn giản, trả lời trực tiếp → "writer"
@@ -21,6 +21,7 @@ prompt = ChatPromptTemplate.from_messages(
             - Yêu cầu dùng công cụ ngoài (API, file, Gmail, Google Drive, …) → "tool"
             - Yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → "vision"
             - Yêu cầu về phong cách, cảm xúc, biểu đạt → "emotive"
+            - Yêu cầu cần truy xuất kiến thức từ cơ sở dữ liệu, vector store hoặc tài liệu đã lưu → "rag""
             """
         ),
         MessagesPlaceholder("assignment"),

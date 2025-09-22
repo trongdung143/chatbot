@@ -14,8 +14,9 @@ from langchain_core.messages import HumanMessage
 
 
 class SupervisorResponseFormat(BaseModel):
-    next_agent: str = Field(description="Tên agent tiếp theo 'calculator', 'writer'")
-    content: str = Field(description="không trả lời, không giải thích gì cả")
+    next_agent: str = Field(description="Tên agent tiếp theo 'calculator', 'writer', 'analyst'")
+    content: str = Field(description="Feedback cho agent biết điểm chưa hoàn thành tốt.")
+    human: bool = Field(description="Nếu cần sự can thiệp của con người 'human' là True, ngược lại là False")
 
 
 class SupervisorAgent(BaseAgent):
@@ -36,19 +37,28 @@ class SupervisorAgent(BaseAgent):
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            response = await self._chain.ainvoke(
-                {"supervision": [HumanMessage(content=task)]}
-            )
+            if state.get("prev_agent") == "analyst":
+                response = await self._chain.ainvoke(
+                    {"supervision": [HumanMessage(content=f"### kết quả của agent analyst\n{task}")]}
+                )
 
-            result = f"[Từ kết quả] {task}"
-            current_tasks, current_results = self.update_work(state, task, result)
-            state.update(
-                human=False,
-                next_agent=response.next_agent,
-                prev_agent=self._agent_name,
-                tasks=current_tasks,
-                results=current_results,
-            )
+                result = f"### Feedback (supervisor)\n{response.content}"
+                current_tasks, current_results = self.update_work(state, task, result)
+                prev_agent = None
+                if response.next_agent in ["writer", "calculator"]:
+                    prev_agent = state.get("prev_agent")
+                else:
+                    prev_agent = self._agent_name
+                state.update(
+                    human=response.human,
+                    next_agent=response.next_agent,
+                    prev_agent=prev_agent,
+                    tasks=current_tasks,
+                    results=current_results,
+                )
+            else:
+                pass
+
             print("supervisor")
         except Exception as e:
             print("ERROR ", self._agent_name)
