@@ -30,7 +30,7 @@ class MemoryAgent(BaseAgent):
         messages = state.get("messages")
         print("length of messages: ", len(messages) + 1)
         try:
-            if len(messages) >= 10:
+            if len(messages) >= 20:
                 last_msg = messages[-1]
                 task = "summary"
                 response = await self._chain.ainvoke({"task": messages[:-1]})
@@ -38,7 +38,7 @@ class MemoryAgent(BaseAgent):
                 messages = delete_msg + [SystemMessage(content=response.content), last_msg]
             else:
                 task = "skiped"
-                response = SystemMessage(content="messages < 10")
+                response = SystemMessage(content="messages < 20")
             result = response.content
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(
