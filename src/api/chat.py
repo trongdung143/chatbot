@@ -32,7 +32,6 @@ async def generate_chat_stream(
         if not graph.get_state(config).values:
             input_state = {
                 "messages": [
-                    SystemMessage(content="""Luôn phản hồi bằng tiếng việt!"""),
                     HumanMessage(content=message)],
                 "thread_id": conversation_id,
                 "human": False,

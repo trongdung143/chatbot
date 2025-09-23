@@ -26,18 +26,16 @@ class WriterAgent(BaseAgent):
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            if state["prev_agent"] == "assigner":
-                response = await self._chain.ainvoke({"task": state.get("messages")})
-            else:
-                response = await self._chain.ainvoke(
-                    {
-                        "task": [
-                            HumanMessage(
-                                content=f"{task}\n\n### Xử lý tiếp"
-                            )
-                        ]
-                    }
-                )
+
+            response = await self._chain.ainvoke(
+                {
+                    "task": [
+                        HumanMessage(
+                            content=f"{task}\n\n### Xử lý tiếp"
+                        )
+                    ]
+                }
+            )
             result = f"### Kết quả (writer)\n{response.content}"
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(

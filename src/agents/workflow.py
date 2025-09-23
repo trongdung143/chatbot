@@ -54,23 +54,19 @@ app.add_node("search", search.process)
 app.add_node("emotive", emotive.process)
 
 app.set_entry_point("memory")
-app.add_edge("memory", "assigner")
+app.add_edge("memory", "analyst")
+app.add_edge("analyst", "assigner")
 app.add_conditional_edges(
     "assigner",
     route,
     {
-        "analyst": "analyst",
         "writer": "writer",
         "coder": "coder",
         "planner": "planner",
         "search": "search",
         "emotive": "emotive",
+        "calculator": "calculator",
     },
-)
-app.add_conditional_edges(
-    "analyst",
-    route,
-    {"calculator" : "calculator", "writer" : "writer",},
 )
 app.add_edge("calculator", "writer")
 app.add_edge("coder", "writer")

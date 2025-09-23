@@ -44,7 +44,7 @@ class MemoryAgent(BaseAgent):
             state.update(
                 messages=messages,
                 human=False,
-                next_agent="assigner",
+                next_agent="analyst",
                 prev_agent=self._agent_name,
                 tasks=current_tasks,
                 results=current_results,

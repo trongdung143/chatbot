@@ -31,17 +31,17 @@ class AssignerAgent(BaseAgent):
         )
 
     async def process(self, state: State) -> State:
-        task = state.get("messages")[-1].content
+        task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            response = await self._chain.ainvoke({"assignment": state.get("messages")})
-            result = f"### Yêu cầu (user)\n{response.content}"
+            response = await self._chain.ainvoke({"assignment": [HumanMessage(content=task)]})
+            result = f"### Phân công (assigner)\n{response.next_agent}"
 
             current_tasks, current_results = self.update_work(state, task, result)
             state.update(
                 human=False,
-                next_agent=response.next_agent,
-                prev_agent=self._agent_name,
+                next_agent=response.next_agent.strip(),
+                prev_agent=state.get("prev_agent"),
                 tasks=current_tasks,
                 results=current_results,
             )

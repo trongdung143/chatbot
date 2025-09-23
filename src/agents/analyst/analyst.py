@@ -3,7 +3,7 @@ from time import time
 from pydantic import BaseModel, Field
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools.base import BaseTool
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
 from langgraph.types import interrupt, Command
 from src.agents.base import BaseAgent
 from src.agents.state import State
@@ -11,18 +11,17 @@ from src.agents.analyst.prompt import prompt, prompt_supervisor
 from src.agents.supervisor.supervisor import SupervisorAgent
 
 class AnalystState(dict):
+    messages: list[BaseMessage]
     task: str
     result: str
     feedback: str
     analysis: str
-    human: bool
     next_agent: str
     prev_agent: str
 
 class SupervisorResponseFormatForAnalyst(BaseModel):
-    next_agent: str = Field(description="Tên agent tiếp theo 'calculator', 'writer', 'analyst'")
+    next_agent: str = Field(description="'next_agent' là 'human_node', 'llm_node', '__end__'")
     content: str = Field(description="Feedback cho agent biết điểm chưa hoàn thành tốt.")
-    human: bool = Field(description="Nếu cần sự can thiệp của con người 'human' là True, ngược lại là False")
 
 
 class SupervisorForAnalyst(SupervisorAgent):
@@ -30,25 +29,33 @@ class SupervisorForAnalyst(SupervisorAgent):
         super().__init__(state=AnalystState, prompt=prompt_supervisor, response_format=SupervisorResponseFormatForAnalyst)
 
     async def process(self, state: AnalystState) -> AnalystState:
-        task = None
-        result = None
         try:
-            task = state.get("analysis")
+            task = state.get("task")
+            analysis = state.get("analysis")
             response = await self._chain.ainvoke(
-                {"supervision": [HumanMessage(content=f"{task}")]}
+                {"supervision": [HumanMessage(content=f"### Yêu cầu (user)\n{task}\n\n{analysis}")]}
             )
 
-            result = f"### Feedback (supervisor)\n{response.content}"
-            if response.next_agent == state.get("prev_agent"):
-                state.update(feedback=result)
-            elif response.next_agent in ["writer", "calculator"]:
+            feedback = f"### Feedback (supervisor)\n{response.content}"
+
+            if response.next_agent == "llm_node":
                 state.update(
-                    human=response.human,
-                    next_agent=response.next_agent,
-                    result=state.get("result"),
+                    feedback=feedback,
+                    prev_agent="supervisor_node",
+                    next_agent="llm_node",
+                )
+            elif response.next_agent == "human_node":
+                state.update(
+                    result=analysis,
+                    next_agent="human_node",
+                )
+            elif response.next_agent == "__end__":
+                state.update(
+                    result=analysis,
+                    next_agent="__end__",
                 )
 
-            print("supervisor")
+            print("supervisor_node")
         except Exception as e:
             print("ERROR ", self._agent_name)
         return state
@@ -90,68 +97,70 @@ class AnalystAgent(BaseAgent):
         self._sub_graph.add_edge("human_node", "__end__")
 
     def _route(self, state: AnalystState) -> str:
-        if state.get("human") is True:
-            return "human_node"
-        else:
-            if state.get("next_agent") in ["calculator", "writer"]:
-                return "__end__"
-            elif state.get("next_agent") == "analyst":
-                return "llm_node"
-            elif state.get("next_agent") == "supervisor":
-                return "supervisor_node"
+        next_agent = state.get("next_agent").strip()
+        VALID_AGENTS = [
+            "llm_node",
+            "human_node",
+            "__end__"
+        ]
+        if next_agent in VALID_AGENTS:
+            return next_agent
+        return "__end__"
 
     def _human_node(self, state: AnalystState) -> AnalystState:
-        if state.get("human") is True:
-            print("human")
-            task = state.get("analysis")
-            marker = "### Phân tích yêu cầu cầu (analyst)"
+        try:
+            analysis = state.get("analysis")
+            marker = ["### Phân tích yêu cầu cầu (analyst)", "### Phân tích lại yêu cầu (analyst)"]
             analyst_part = None
-            if marker in task:
-                analyst_part = task.split(marker, 1)[-1].strip()
+            for mark in marker:
+                if mark in analysis:
+                    analyst_part = analysis.split(mark, 1)[-1].strip()
+                    break
             edit = interrupt({"AIMessage": analyst_part})
-            result = f"{task}\n\n### Yêu cầu bổ sung\n{edit}"
+            result = f"### Phân tích yêu cầu cầu (analyst)\n{analyst_part}\n\n### Yêu cầu bổ sung (user)\n{edit}"
             state.update(
                 result=result,
             )
+            print("human_node")
+        except Exception as e:
+            print("ERROR ", "human_node")
         return state
 
     async def _llm_node(self, state: AnalystState) -> AnalystState:
-        result = None
         try:
-            if state.get("prev_agent") != "supervisor":
-                task = state.get("task")
-                response = await self._chain.ainvoke({"task": [HumanMessage(content=f"{task}")]})
-                result = f"### Phân tích yêu cầu cầu (analyst)\n{response.content}"
+            result = None
+            if state.get("prev_agent") != "supervisor_node":
+                response = await self._chain.ainvoke({"task": state.get("messages")})
+                analysis = f"### Phân tích yêu cầu cầu (analyst)\n{response.content}"
                 state.update(
-                    analysis=result,
-                    next_agent="supervisor",
-                    prev_agent=self._agent_name,
-                    result=response.content,
+                    analysis=analysis,
+                    next_agent="supervisor_node",
+                    prev_agent="llm_node",
                 )
-            else:
+            elif state.get("prev_agent") == "supervisor_node":
                 feedback = state.get("feedback")
                 analysis = state.get("analysis")
                 response = await self._chain.ainvoke({"task": [HumanMessage(content=f"{analysis}\n\n{feedback}\n\n### Từ feedback hãy sửa lại phân tích.")]})
-                result = f"### Phân tích lại yêu cầu {response.content}"
+                analysis = f"### Phân tích lại yêu cầu (analyst){response.content}"
                 state.update(
-                    analysis=result,
-                    next_agent="supervisor",
-                    prev_agent=self._agent_name,
-                    result=response.content,
+                    analysis=analysis,
+                    next_agent="supervisor_node",
+                    prev_agent="llm_node",
                 )
-            print("analyst")
+            print("llm_node")
         except Exception as e:
-            print("ERROR ", self._agent_name)
+            print("ERROR ", "llm_node in analyst agent")
         return state
 
     async def process(self, state: State) -> State:
-        task = state.get("results").get(state.get("prev_agent"))[-1]
+        messages = state.get("messages")
+        task = messages[-1].content
         input_state = {
+            "messages": messages,
             "task": task,
             "result": None,
             "feedback": None,
             "analysis": None,
-            "human": False,
             "next_agent": None,
             "prev_agent": state.get("prev_agent"),
         }
@@ -160,7 +169,7 @@ class AnalystAgent(BaseAgent):
         current_tasks, current_results = self.update_work(state, task, response.get("result"))
         state.update(
             human=False,
-            next_agent=response.get("next_agent"),
+            next_agent="assigner",
             prev_agent=self._agent_name,
             tasks=current_tasks,
             results=current_results,
