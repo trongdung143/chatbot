@@ -1,14 +1,17 @@
 from typing import Sequence
-from time import time
-from pydantic import BaseModel, Field
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+
+from langchain_core.messages import HumanMessage, BaseMessage
 from langchain_core.tools.base import BaseTool
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, BaseMessage
-from langgraph.types import interrupt, Command
+from langgraph.types import interrupt
+from pydantic import BaseModel, Field
+
+from src.agents.analyst.prompt import prompt, prompt_supervisor
 from src.agents.base import BaseAgent
 from src.agents.state import State
-from src.agents.analyst.prompt import prompt, prompt_supervisor
 from src.agents.supervisor.supervisor import SupervisorAgent
+
+ANALYSIS = "### Phân tích yêu cầu (analyst)"
+TRY_ANALYSIS = "### Phân tích lại yêu cầu (analyst)"
 
 class AnalystState(dict):
     messages: list[BaseMessage]
@@ -55,9 +58,9 @@ class SupervisorForAnalyst(SupervisorAgent):
                     next_agent="__end__",
                 )
 
-            print("supervisor_node")
+            print("supervisor_node in analyst agent")
         except Exception as e:
-            print("ERROR ", self._agent_name)
+            print("ERROR ", "supervisor_node in analyst agent\n", e)
         return state
 
 
@@ -108,22 +111,22 @@ class AnalystAgent(BaseAgent):
         return "__end__"
 
     def _human_node(self, state: AnalystState) -> AnalystState:
-        try:
-            analysis = state.get("analysis")
-            marker = ["### Phân tích yêu cầu cầu (analyst)", "### Phân tích lại yêu cầu (analyst)"]
-            analyst_part = None
-            for mark in marker:
-                if mark in analysis:
-                    analyst_part = analysis.split(mark, 1)[-1].strip()
-                    break
-            edit = interrupt({"AIMessage": analyst_part})
-            result = f"### Phân tích yêu cầu cầu (analyst)\n{analyst_part}\n\n### Yêu cầu bổ sung (user)\n{edit}"
-            state.update(
-                result=result,
-            )
-            print("human_node")
-        except Exception as e:
-            print("ERROR ", "human_node")
+
+        analysis = state.get("analysis")
+        marker = [ANALYSIS, TRY_ANALYSIS]
+        analysis_part = None
+        for mark in marker:
+            if mark in analysis:
+                analysis_part = analysis.split(mark, 1)[-1].strip()
+                break
+        edit = interrupt({"AIMessage": analysis_part})
+        result = f"{ANALYSIS}\n{analysis_part}\n\n### Yêu cầu bổ sung (user)\n{edit}"
+        state.update(
+            result=result,
+        )
+        print("human_node in analyst agent")
+
+
         return state
 
     async def _llm_node(self, state: AnalystState) -> AnalystState:
@@ -131,7 +134,7 @@ class AnalystAgent(BaseAgent):
             result = None
             if state.get("prev_agent") != "supervisor_node":
                 response = await self._chain.ainvoke({"task": state.get("messages")})
-                analysis = f"### Phân tích yêu cầu cầu (analyst)\n{response.content}"
+                analysis = f"{ANALYSIS}\n{response.content}"
                 state.update(
                     analysis=analysis,
                     next_agent="supervisor_node",
@@ -141,15 +144,15 @@ class AnalystAgent(BaseAgent):
                 feedback = state.get("feedback")
                 analysis = state.get("analysis")
                 response = await self._chain.ainvoke({"task": [HumanMessage(content=f"{analysis}\n\n{feedback}\n\n### Từ feedback hãy sửa lại phân tích.")]})
-                analysis = f"### Phân tích lại yêu cầu (analyst){response.content}"
+                analysis = f"{TRY_ANALYSIS}\n{response.content}"
                 state.update(
                     analysis=analysis,
                     next_agent="supervisor_node",
                     prev_agent="llm_node",
                 )
-            print("llm_node")
+            print("llm_node in analyst agent")
         except Exception as e:
-            print("ERROR ", "llm_node in analyst agent")
+            print("ERROR ", "llm_node in analyst agent\n", e)
         return state
 
     async def process(self, state: State) -> State:

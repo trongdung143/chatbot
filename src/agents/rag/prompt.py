@@ -13,3 +13,16 @@ prompt = ChatPromptTemplate.from_messages(
         MessagesPlaceholder("task"),
     ]
 )
+
+prompt_supervisor =  ChatPromptTemplate.from_messages(
+    [
+        SystemMessage(
+            content="""
+            Bạn là SUPERVISOR agent.
+            Nhiệm vụ của bạn:
+            
+            """
+        ),
+        MessagesPlaceholder("task"),
+    ]
+)

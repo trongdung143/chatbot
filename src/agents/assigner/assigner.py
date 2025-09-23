@@ -47,5 +47,5 @@ class AssignerAgent(BaseAgent):
             )
             print("assigner")
         except Exception as e:
-            print("ERROR ", self._agent_name)
+            print("ERROR ", self._agent_name, f"\n{e}")
         return state
