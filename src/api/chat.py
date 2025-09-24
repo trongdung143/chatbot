@@ -10,15 +10,6 @@ from langgraph.types import Command
 from langgraph.graph.message import REMOVE_ALL_MESSAGES
 
 router = APIRouter()
-agents_dir = "src/agents"
-
-agents = [
-    name
-    for name in os.listdir(agents_dir)
-    if os.path.isdir(os.path.join(agents_dir, name))
-]
-
-agents.remove("__pycache__")
 
 async def generate_chat_stream(
     message: str,
@@ -33,26 +24,24 @@ async def generate_chat_stream(
             input_state = {
                 "messages": [
                     HumanMessage(content=message)],
-                "thread_id": conversation_id,
-                "human": False,
+                "human": None,
                 "next_agent": "memory",
                 "prev_agent": None,
-                "tasks": {agent: [] for agent in agents},
-                "results": {agent: [] for agent in agents},
+                "thread_id": conversation_id,
+                "tasks": None,
+                "results": None,
+                "assigned_agents": None,
                 "file_path": file_path,
             }
         else:
             input_state = {
                 "messages": [
                     HumanMessage(content=message)],
-                "thread_id": conversation_id,
-                "human": False,
+                "human": None,
                 "next_agent": "memory",
-                "prev_agent": None,
+                "assigned_agents": None,
                 "file_path": file_path,
             }
-
-
 
         if messages:
             old_messages = []

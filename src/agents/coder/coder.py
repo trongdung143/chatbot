@@ -22,18 +22,21 @@ class CoderAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        task = state.get("results").get(state.get("prev_agent"))[-1]
+        tasks = state.get("assigned_agents").get(self._agent_name)
+        task = ""
+        for t in tasks:
+            task = task + f"{t}\n"
         result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
             result = f"### Kết quả code (coder)\n{response.content}"
-            current_tasks, current_results = self.update_work(state, task, result)
+            current_tasks, current_results, assigned_agents = self.update_work(state, task, result)
             state.update(
                 human=False,
-                next_agent="writer",
                 prev_agent=self._agent_name,
                 tasks=current_tasks,
                 results=current_results,
+                assigned_agents=assigned_agents,
             )
             print("coder")
         except Exception as e:

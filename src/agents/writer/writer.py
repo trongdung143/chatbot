@@ -23,21 +23,24 @@ class WriterAgent(BaseAgent):
 
     @traceable
     async def process(self, state: State) -> State:
-        task = state.get("results").get(state.get("prev_agent"))[-1]
+        assigned_agents = state.get("assigned_agents")
+        task = ""
+        for agent in assigned_agents:
+            task = task + f"{state.get("results").get(agent)[-1]}\n"
         result = None
         try:
-
             response = await self._chain.ainvoke(
                 {
                     "task": [
                         HumanMessage(
-                            content=f"{task}\n\n### Xử lý tiếp"
+                            content=f"{task}\n\n### Diễn đạt lại cho người dùng"
                         )
                     ]
                 }
             )
+
             result = f"### Kết quả (writer)\n{response.content}"
-            current_tasks, current_results = self.update_work(state, task, result)
+            current_tasks, current_results, _ = self.update_work(state, task, result)
             state.update(
                 messages=[response],
                 human=False,

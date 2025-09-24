@@ -7,10 +7,7 @@ prompt = ChatPromptTemplate.from_messages(
             content="""
             Bạn là PLANNER agent.
             Nhiệm vụ:
-            - Lập kế hoạch nhiều bước để giải quyết một yêu cầu phức tạp.
-            - Chia task thành subtask, gợi ý agent nào nên xử lý từng bước.
-            Output:
-            - Danh sách các bước, mỗi bước gắn agent phù hợp.
+            - Lập kế hoạch nhiều bước để giải quyết một yêu cầu.
         """
         ),
         MessagesPlaceholder("task"),

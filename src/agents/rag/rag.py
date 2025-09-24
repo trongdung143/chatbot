@@ -57,7 +57,7 @@ class RagAgent(BaseAgent):
             google_api_key=GOOGLE_API_KEY,
         )
 
-        self._web_search_tool = TavilySearchResults(k=3)
+        # self._web_search_tool = TavilySearchResults(k=3)
 
     def _set_subgraph(self):
         pass
@@ -83,7 +83,10 @@ class RagAgent(BaseAgent):
         return state
 
     async def process(self, state: State) -> State:
-        task = state.get("results").get(state.get("prev_agent"))[-1]
+        tasks = state.get("assigned_agents").get(self._agent_name)
+        task = ""
+        for t in tasks:
+            task = task + f"{t}\n"
         result = None
         response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
         result = f"[Kết quả tính toán] {response.content}"
@@ -96,7 +99,6 @@ class RagAgent(BaseAgent):
         current_results.setdefault(self._agent_name, []).append(result)
         state.update(
             human=False,
-            next_agent="writer",
             prev_agent=self._agent_name,
             tasks=current_tasks,
             results=current_results,

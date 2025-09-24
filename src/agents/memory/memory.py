@@ -40,10 +40,9 @@ class MemoryAgent(BaseAgent):
                 task = "skiped"
                 response = SystemMessage(content="messages < 20")
             result = response.content
-            current_tasks, current_results = self.update_work(state, task, result)
+            current_tasks, current_results, _ = self.update_work(state, task, result)
             state.update(
                 messages=messages,
-                human=False,
                 next_agent="analyst",
                 prev_agent=self._agent_name,
                 tasks=current_tasks,
@@ -51,5 +50,5 @@ class MemoryAgent(BaseAgent):
             )
             print("memory")
         except Exception as e:
-            print("ERROR ", self._agent_name)
+            print("ERROR ", self._agent_name, f"\n{e}")
         return state

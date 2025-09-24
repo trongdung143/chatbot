@@ -38,8 +38,10 @@ class emotiveAgent(BaseAgent):
         return text
 
     async def process(self, state: State) -> State:
-
-        task = state.get("results").get(state.get("prev_agent"))[-1]
+        tasks = state.get("assigned_agents").get(self._agent_name)
+        task = ""
+        for t in tasks:
+            task = task + f"{t}\n"
         result = None
         try:
             content = self._extract_text_from_pdf(state)
@@ -47,13 +49,14 @@ class emotiveAgent(BaseAgent):
                 {"task": [HumanMessage(content=f"### Nội Dung\n{content}\n\n### Yêu Cầu\n{task}")]}
             )
             result = response.content
-            current_tasks, current_results = self.update_work(state, task, result)
+            current_tasks, current_results, assigned_agents = self.update_work(state, task, result)
             state.update(
                 human=False,
                 next_agent=None,
                 prev_agent=self._agent_name,
                 tasks=current_tasks,
                 results=current_results,
+                assigned_agents=assigned_agents,
             )
             print("emotive")
         except Exception as e:

@@ -9,6 +9,7 @@ from src.agents.analyst.prompt import prompt, prompt_supervisor
 from src.agents.base import BaseAgent
 from src.agents.state import State
 from src.agents.supervisor.supervisor import SupervisorAgent
+from langsmith import traceable
 
 ANALYSIS = "### Phân tích yêu cầu (analyst)"
 TRY_ANALYSIS = "### Phân tích lại yêu cầu (analyst)"
@@ -31,6 +32,7 @@ class SupervisorForAnalyst(SupervisorAgent):
     def __init__(self):
         super().__init__(state=AnalystState, prompt=prompt_supervisor, response_format=SupervisorResponseFormatForAnalyst)
 
+    @traceable
     async def process(self, state: AnalystState) -> AnalystState:
         try:
             task = state.get("task")
@@ -111,7 +113,6 @@ class AnalystAgent(BaseAgent):
         return "__end__"
 
     def _human_node(self, state: AnalystState) -> AnalystState:
-
         analysis = state.get("analysis")
         marker = [ANALYSIS, TRY_ANALYSIS]
         analysis_part = None
@@ -133,7 +134,8 @@ class AnalystAgent(BaseAgent):
         try:
             result = None
             if state.get("prev_agent") != "supervisor_node":
-                response = await self._chain.ainvoke({"task": state.get("messages")})
+                task = state.get("task")
+                response = await self._chain.ainvoke({"task": [HumanMessage(content=f"### Yêu cầu (user)\n{task}")]})
                 analysis = f"{ANALYSIS}\n{response.content}"
                 state.update(
                     analysis=analysis,
@@ -165,17 +167,16 @@ class AnalystAgent(BaseAgent):
             "feedback": None,
             "analysis": None,
             "next_agent": None,
-            "prev_agent": state.get("prev_agent"),
+            "prev_agent": "human_node",
         }
         sub_graph = self.get_subgraph()
         response = await sub_graph.ainvoke(input=input_state)
-        current_tasks, current_results = self.update_work(state, task, response.get("result"))
+        current_tasks, current_results, _ = self.update_work(state, task, response.get("result"))
         state.update(
-            human=False,
-            next_agent="assigner",
-            prev_agent=self._agent_name,
             tasks=current_tasks,
             results=current_results,
+            next_agent="assigner",
+            prev_agent=self._agent_name,
         )
         return state
 

@@ -22,21 +22,19 @@ class SearchAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        task = state.get("results").get(state.get("prev_agent"))[-1]
-        result = None
+        task = self.get_task(state)
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
             result = f"### Kết quả tìm kiếm (search)\n{response.content}"
-            current_tasks, current_results = self.update_work(state, task, result)
-
+            current_tasks, current_results, assigned_agents = self.update_work(state, task, result)
             state.update(
                 human=False,
-                next_agent="writer",
                 prev_agent=self._agent_name,
                 tasks=current_tasks,
                 results=current_results,
+                assigned_agents=assigned_agents,
             )
             print("search")
         except Exception as e:
-            print("ERROR ", self._agent_name)
+            print("ERROR ", self._agent_name, f"\n{e}")
         return state

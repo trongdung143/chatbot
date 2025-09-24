@@ -1,6 +1,7 @@
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph.state import StateGraph
 from src.agents.analyst.analyst import AnalystAgent
+from src.agents.rag.rag import RagAgent
 from src.agents.writer.writer import WriterAgent
 from src.agents.assigner.assigner import AssignerAgent
 from src.agents.state import State
@@ -10,7 +11,7 @@ from src.agents.memory.memory import MemoryAgent
 from src.agents.planner.planner import PlannerAgent
 from src.agents.search.search import SearchAgent
 from src.agents.emotive.emotive import emotiveAgent
-
+from src.agents.simple.simple import SimpleAgent
 app = StateGraph(State)
 
 assigner = AssignerAgent()
@@ -22,26 +23,32 @@ planner = PlannerAgent()
 search = SearchAgent()
 memory = MemoryAgent()
 emotive = emotiveAgent()
+rag = RagAgent()
+simple = SimpleAgent()
 
-
-def route(state: State) -> str:
-    next_agent = state.get("next_agent")
-    VALID_AGENTS = [
-        "analyst",
-        "writer",
+VALID_AGENTS = [
         "calculator",
         "coder",
-        "memory",
         "planner",
         "search",
-        "tool",
-        "vision",
         "emotive",
+        "rag",
+        "simple"
     ]
+
+def route(state: State) -> str:
+    assigned_agents = state.get("assigned_agents")
+    next_agent = None
+    for agent_name, tasks in assigned_agents.items():
+        if tasks:
+            next_agent = agent_name
+            break
     if next_agent in VALID_AGENTS:
         return next_agent
     return "writer"
 
+def noop(state: State) -> State:
+    return state
 
 app.add_node("assigner", assigner.process)
 app.add_node("analyst", analyst.process)
@@ -52,27 +59,32 @@ app.add_node("memory", memory.process)
 app.add_node("planner", planner.process)
 app.add_node("search", search.process)
 app.add_node("emotive", emotive.process)
+app.add_node("rag", rag.process)
+app.add_node("simple", simple.process)
+app.add_node("noop", noop)
+
 
 app.set_entry_point("memory")
 app.add_edge("memory", "analyst")
 app.add_edge("analyst", "assigner")
+app.add_edge("assigner", "noop")
 app.add_conditional_edges(
-    "assigner",
+    "noop",
     route,
     {
-        "writer": "writer",
         "coder": "coder",
         "planner": "planner",
         "search": "search",
         "emotive": "emotive",
         "calculator": "calculator",
+        "rag": "rag",
+        "writer": "writer",
+        "simple": "simple",
     },
 )
-app.add_edge("calculator", "writer")
-app.add_edge("coder", "writer")
-app.add_edge("planner", "writer")
-app.add_edge("search", "writer")
-app.add_edge("emotive", "__end__")
+
+for agent in VALID_AGENTS:
+    app.add_edge(agent, "noop")
 app.set_finish_point("writer")
 
 graph = app.compile(checkpointer=MemorySaver())

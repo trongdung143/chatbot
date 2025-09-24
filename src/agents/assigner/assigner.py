@@ -7,13 +7,13 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
 from src.agents.assigner.prompt import prompt
-
+import ast
 
 class AssignerResponseFormat(BaseModel):
-    next_agent: str = Field(
-        description="Tên agent tiếp theo, 'analyst', 'coder', 'planner', 'search', 'tool', 'vision', 'writer', 'emotive'"
+    assigned_agents: str = Field(
+        description="Đầu ra là ví dụ {'simple': ['công việc 1 của simple', 'công việc 2 của simple'], 'coder': ['công việc 1 của coder', ]}"
     )
-    content: str = Field(description="Chuyển yêu cầu cho agent khác xử lý.")
+    content: str = Field(description="Không dùng")
 
 
 class AssignerAgent(BaseAgent):
@@ -34,18 +34,18 @@ class AssignerAgent(BaseAgent):
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            response = await self._chain.ainvoke({"assignment": [HumanMessage(content=task)]})
-            result = f"### Phân công (assigner)\n{response.next_agent}"
+            response = await self._chain.ainvoke({"assignment": [HumanMessage(content=f"{task}\n\n### Phân công phù hợp")]})
+            result = f"### Phân công (assigner)\n{response.assigned_agents}"
+            current_tasks, current_results, _ = self.update_work(state, task, result)
+            assigned_agents = ast.literal_eval(response.assigned_agents)
 
-            current_tasks, current_results = self.update_work(state, task, result)
             state.update(
-                human=False,
-                next_agent=response.next_agent.strip(),
-                prev_agent=state.get("prev_agent"),
+                prev_agent=self._agent_name,
                 tasks=current_tasks,
                 results=current_results,
+                assigned_agents=assigned_agents,
             )
-            print("assigner")
+            print("assigner", assigned_agents)
         except Exception as e:
             print("ERROR ", self._agent_name, f"\n{e}")
         return state

@@ -64,12 +64,21 @@ class BaseAgent:
 
     def update_work(
             self, state: State, task: str, result: str
-    ) -> tuple[dict[str, list[str]], dict[str, list[str]]]:
-        current_tasks: dict[str, list[str]] = state.get("tasks", {})
-        current_results: dict[str, list[str]] = state.get("results", {})
+    ) -> tuple[dict[str, list[str]], dict[str, list[str]], dict[str, list[str]] | None]:
+        current_tasks: dict[str, list[str]] = state.get("tasks") or {}
+        current_results: dict[str, list[str]] = state.get("results") or {}
+        assigned_agents: dict[str, list[str]] = state.get("assigned_agents") or {}
         agent_name = self._agent_name
-
+        if assigned_agents is not None:
+            assigned_agents[agent_name] = []
         current_tasks.setdefault(agent_name, []).append(task)
         current_results.setdefault(agent_name, []).append(result)
 
-        return current_tasks, current_results
+        return current_tasks, current_results, assigned_agents
+
+    def get_task(self, state) -> str | None:
+        tasks = state.get("assigned_agents").get(self._agent_name)
+        task = ""
+        for t in tasks:
+            task = task + f"{t}\n"
+        return task

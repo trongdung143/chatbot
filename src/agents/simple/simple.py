@@ -6,14 +6,13 @@ from langchain_core.tools.base import BaseTool
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 from src.agents.base import BaseAgent
 from src.agents.state import State
-from src.agents.calculator.prompt import prompt
-from src.tools.life import get_relative_date, get_time
+from src.agents.search.prompt import prompt
 
 
-class CalculatorAgent(BaseAgent):
+class SimpleAgent(BaseAgent):
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
-            agent_name="calculator",
+            agent_name="simple",
             tools=tools,
             model=None,
         )
@@ -23,15 +22,11 @@ class CalculatorAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        tasks = state.get("assigned_agents").get(self._agent_name)
-        task = ""
-        for t in tasks:
-            task = task + f"{t}\n"
+        task = self.get_task(state)
         result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
-            result = f"### Kết quả tính toán (calculator)\n{response.content}"
-
+            result = f"### Kết quả (simple)\n{response.content}"
             current_tasks, current_results, assigned_agents = self.update_work(state, task, result)
             state.update(
                 human=False,
@@ -40,7 +35,7 @@ class CalculatorAgent(BaseAgent):
                 results=current_results,
                 assigned_agents=assigned_agents,
             )
-            print("calculator")
+            print("simple")
         except Exception as e:
             print("ERROR ", self._agent_name)
         return state
