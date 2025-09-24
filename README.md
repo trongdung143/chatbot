@@ -33,7 +33,7 @@ An AI chatbot project built with FastAPI, LangChain, and other modern technologi
 
 The chatbot is built on a Multi-Agent architecture, where each agent handles a specific role. Below are the details of the main agents in the system:
 
-![System Architecture](./graph.png)
+![System Architecture](src/images/graph.png)
 
 ### Core Agents
 
@@ -57,6 +57,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Vision: Image processing and OCR
 
 #### 3. AnalystAgent
+![Analyst Architecture](src/images/analyst.png)
 - **Role**: Deep analysis of user requests
 - **Functions**:
   - Clarify and structure requests

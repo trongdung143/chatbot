@@ -18,7 +18,8 @@ class AnalystState(dict):
     messages: list[BaseMessage]
     task: str
     result: str
-    feedback: str
+    feedback_supervisor: str
+    feedback_user: str
     analysis: str
     next_agent: str
     prev_agent: str
@@ -41,11 +42,11 @@ class SupervisorForAnalyst(SupervisorAgent):
                 {"supervision": [HumanMessage(content=f"### Yêu cầu (user)\n{task}\n\n{analysis}")]}
             )
 
-            feedback = f"### Feedback (supervisor)\n{response.content}"
+            feedback_supervisor = f"### Feedback (supervisor)\n{response.content}"
 
             if response.next_agent == "llm_node":
                 state.update(
-                    feedback=feedback,
+                    feedback_supervisor=feedback_supervisor,
                     prev_agent="supervisor_node",
                     next_agent="llm_node",
                 )
@@ -99,7 +100,7 @@ class AnalystAgent(BaseAgent):
             self._route,
             {"human_node": "human_node", "llm_node": "llm_node", "__end__": "__end__"}
         )
-        self._sub_graph.add_edge("human_node", "__end__")
+        self._sub_graph.add_edge("human_node", "llm_node")
 
     def _route(self, state: AnalystState) -> str:
         next_agent = state.get("next_agent").strip()
@@ -121,37 +122,40 @@ class AnalystAgent(BaseAgent):
                 analysis_part = analysis.split(mark, 1)[-1].strip()
                 break
         edit = interrupt({"AIMessage": analysis_part})
-        result = f"{ANALYSIS}\n{analysis_part}\n\n### Yêu cầu bổ sung (user)\n{edit}"
+        result = f"### Feedback (user)\n{edit}"
         state.update(
-            result=result,
+            feedback_user=result,
+            prev_agent="human_node",
+            next_agent="llm_node",
         )
         print("human_node in analyst agent")
-
-
         return state
 
     async def _llm_node(self, state: AnalystState) -> AnalystState:
         try:
             result = None
-            if state.get("prev_agent") != "supervisor_node":
+            analysis = None
+            if state.get("prev_agent") not in ["supervisor_node", "human_node"]:
                 task = state.get("task")
                 response = await self._chain.ainvoke({"task": [HumanMessage(content=f"### Yêu cầu (user)\n{task}")]})
                 analysis = f"{ANALYSIS}\n{response.content}"
-                state.update(
-                    analysis=analysis,
-                    next_agent="supervisor_node",
-                    prev_agent="llm_node",
-                )
-            elif state.get("prev_agent") == "supervisor_node":
-                feedback = state.get("feedback")
+
+
+            elif state.get("prev_agent") in ["supervisor_node", "human_node"]:
+                feedback = None
+                if state.get("prev_agent") == "supervisor_node":
+                    feedback = state.get("feedback_supervisor")
+                else:
+                    feedback = state.get("feedback_user")
                 analysis = state.get("analysis")
                 response = await self._chain.ainvoke({"task": [HumanMessage(content=f"{analysis}\n\n{feedback}\n\n### Từ feedback hãy sửa lại phân tích.")]})
                 analysis = f"{TRY_ANALYSIS}\n{response.content}"
-                state.update(
-                    analysis=analysis,
-                    next_agent="supervisor_node",
-                    prev_agent="llm_node",
-                )
+
+            state.update(
+                analysis=analysis,
+                next_agent="supervisor_node",
+                prev_agent="llm_node",
+            )
             print("llm_node in analyst agent")
         except Exception as e:
             print("ERROR ", "llm_node in analyst agent\n", e)
@@ -164,10 +168,11 @@ class AnalystAgent(BaseAgent):
             "messages": messages,
             "task": task,
             "result": None,
-            "feedback": None,
+            "feedback_supervisor": None,
+            "feedback_user": None,
             "analysis": None,
             "next_agent": None,
-            "prev_agent": "human_node",
+            "prev_agent": "other_node",
         }
         sub_graph = self.get_subgraph()
         response = await sub_graph.ainvoke(input=input_state)

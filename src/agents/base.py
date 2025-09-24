@@ -77,8 +77,5 @@ class BaseAgent:
         return current_tasks, current_results, assigned_agents
 
     def get_task(self, state) -> str | None:
-        tasks = state.get("assigned_agents").get(self._agent_name)
-        task = ""
-        for t in tasks:
-            task = task + f"{t}\n"
-        return task
+        tasks = state.get("assigned_agents", {}).get(self._agent_name, [])
+        return "\n".join(tasks)

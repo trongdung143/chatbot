@@ -13,7 +13,6 @@ prompt = ChatPromptTemplate.from_messages(
         - Luôn sử dụng cùng ngôn ngữ mà người dùng đã dùng.
 
         Quan Trọng:
-        - Quan trọng không lặp lại nội dung đã được xử lý.
         - Luôn diễn đạt lại nội dung sao cho dễ hiểu, mạch lạc.
         """
         ),

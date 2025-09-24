@@ -13,7 +13,6 @@ prompt = ChatPromptTemplate.from_messages(
             - Gán rõ công việc nào sẽ do agent nào thực hiện.
             
             Quy tắc phân công:
-            - Yêu cầu đơn giản, trả lời trực tiếp → "simple"
             - Yêu cầu về lập trình → "coder"
             - Yêu cầu cần lập kế hoạch, các bước cụ thể → "planner"
             - Yêu cầu tra cứu thông tin, tìm kiếm dữ liệu → "search"
@@ -29,8 +28,9 @@ prompt = ChatPromptTemplate.from_messages(
             
             Ví dụ:
             {
-              "simple": "các công việc",
-              "search": "các công việc khác"
+              "rag": ["các công việc"],
+              "search": ["các công việc khác", "công việc 1"]
+              ...
             }
             """
         ),

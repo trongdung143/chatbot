@@ -26,14 +26,14 @@ class WriterAgent(BaseAgent):
         assigned_agents = state.get("assigned_agents")
         task = ""
         for agent in assigned_agents:
-            task = task + f"{state.get("results").get(agent)[-1]}\n"
+            task = task + f"{state.get("results").get(agent)[-1]}\n\n"
         result = None
         try:
             response = await self._chain.ainvoke(
                 {
                     "task": [
                         HumanMessage(
-                            content=f"{task}\n\n### Diễn đạt lại cho người dùng"
+                            content=f"{task}\n\n### Từ các kết quả từ các agent trước tổng hợp, diễn đạt lại cho người dùng"
                         )
                     ]
                 }
