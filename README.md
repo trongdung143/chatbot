@@ -74,8 +74,18 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Cite information sources
   - No speculation, only data-based responses
 
+### 5. RagAgent
+![Rag Architecture](src/images/rag.png)
+- **Role**: Retrieval-Augmented Generation (RAG) – combine document retrieval with response generation
+- **Functions**:
+  - Convert input documents into vector embeddings and store them in a vector database
+  - Perform retrieval: search for the most relevant chunks from the knowledge base
+  - Provide the retrieved context to the LLM for answer generation
+  - Review the generated answer: if the information is incomplete or unclear, trigger a re-question step to refine the query
+  - Ensure responses are grounded in retrieved data (no hallucinations)
+  - Pass results to the Supervisor Agent when the flow needs to end or be redirected
 
-#### 5. CoderAgent
+#### 6. CoderAgent
 - **Role**: Handle programming-related issues
 - **Functions**:
   - Write and edit code
@@ -83,7 +93,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Performance optimization
   - Technical solution consulting
 
-#### 6. PlannerAgent
+#### 7. PlannerAgent
 - **Role**: Planning and strategy
 - **Functions**:
   - Create detailed plans
@@ -91,7 +101,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Estimate time and resources
   - Track progress
 
-#### 7. MemoryAgent
+#### 8. MemoryAgent
 - **Role**: Memory and context management
 - **Functions**:
   - Store important information
@@ -100,7 +110,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Manage interaction history
   - Summarize context when it becomes too long
 
-#### 8. WriterAgent
+#### 9. WriterAgent
 - **Role**: Content creation and editing
 - **Functions**:
   - Write text based on requirements
@@ -108,7 +118,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Create summary reports
   - Clear idea expression
 
-#### 9. ToolAgent
+#### 10. ToolAgent
 - **Role**: External tool management and usage
 - **Functions**:
   - Integration with external APIs
@@ -116,7 +126,7 @@ The chatbot is built on a Multi-Agent architecture, where each agent handles a s
   - Service connections (Gmail, Drive)
   - System task processing
 
-#### 10. VisionAgent
+#### 11. VisionAgent
 - **Role**: Image-related task processing
 - **Functions**:
   - Image analysis

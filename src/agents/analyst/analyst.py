@@ -21,11 +21,11 @@ class AnalystState(dict):
     feedback_supervisor: str
     feedback_user: str
     analysis: str
-    next_agent: str
-    prev_agent: str
+    next_node: str
+    prev_node: str
 
 class SupervisorResponseFormatForAnalyst(BaseModel):
-    next_agent: str = Field(description="'next_agent' là 'human_node', 'llm_node', '__end__'")
+    next_node: str = Field(description="'next_node' là 'human', 'llm', '__end__'")
     content: str = Field(description="Feedback cho agent biết điểm chưa hoàn thành tốt.")
 
 
@@ -44,26 +44,26 @@ class SupervisorForAnalyst(SupervisorAgent):
 
             feedback_supervisor = f"### Feedback (supervisor)\n{response.content}"
 
-            if response.next_agent == "llm_node":
+            if response.next_node == "llm":
                 state.update(
                     feedback_supervisor=feedback_supervisor,
-                    prev_agent="supervisor_node",
-                    next_agent="llm_node",
+                    prev_node="supervisor",
+                    next_node="llm",
                 )
-            elif response.next_agent == "human_node":
+            elif response.next_node == "human":
                 state.update(
                     result=analysis,
-                    next_agent="human_node",
+                    next_node="human",
                 )
-            elif response.next_agent == "__end__":
+            elif response.next_node == "__end__":
                 state.update(
                     result=analysis,
-                    next_agent="__end__",
+                    next_node="__end__",
                 )
 
-            print("supervisor_node in analyst agent")
+            print("supervisor in analyst agent")
         except Exception as e:
-            print("ERROR ", "supervisor_node in analyst agent\n", e)
+            print("ERROR ", "supervisor in analyst agent\n", e)
         return state
 
 
@@ -72,10 +72,15 @@ class SupervisorForAnalyst(SupervisorAgent):
 #         description="Phân tích lại yêu cầu một cách rõ ràng, có cấu trúc."
 #     )
 #     human: bool = Field(description="True nếu cần con người tham gia, False nếu không")
-#     next_agent: str = Field(description="Nếu sau khi phân tích cần tính toán thì chọn 'calculator', ngược lại 'writer'")
+#     next_node: str = Field(description="Nếu sau khi phân tích cần tính toán thì chọn 'calculator', ngược lại 'writer'")
 
 
 class AnalystAgent(BaseAgent):
+    VALID_NODES = [
+        "llm",
+        "human",
+        "__end__"
+    ]
     def __init__(self, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
             agent_name="analyst",
@@ -90,30 +95,26 @@ class AnalystAgent(BaseAgent):
         self._set_subgraph()
 
     def _set_subgraph(self):
-        self._sub_graph.add_node("llm_node", self._llm_node)
-        self._sub_graph.add_node("human_node", self._human_node)
-        self._sub_graph.add_node("supervisor_node", self._supervisor.process)
-        self._sub_graph.set_entry_point("llm_node")
-        self._sub_graph.add_edge("llm_node", "supervisor_node")
+        self._sub_graph.add_node("llm", self._llm)
+        self._sub_graph.add_node("human", self._human)
+        self._sub_graph.add_node("supervisor", self._supervisor.process)
+
+        self._sub_graph.set_entry_point("llm")
+        self._sub_graph.add_edge("llm", "supervisor")
         self._sub_graph.add_conditional_edges(
-            "supervisor_node",
+            "supervisor",
             self._route,
-            {"human_node": "human_node", "llm_node": "llm_node", "__end__": "__end__"}
+            {"human": "human", "llm": "llm", "__end__": "__end__"}
         )
-        self._sub_graph.add_edge("human_node", "llm_node")
+        self._sub_graph.add_edge("human", "llm")
 
     def _route(self, state: AnalystState) -> str:
-        next_agent = state.get("next_agent").strip()
-        VALID_AGENTS = [
-            "llm_node",
-            "human_node",
-            "__end__"
-        ]
-        if next_agent in VALID_AGENTS:
-            return next_agent
+        next_node = state.get("next_node").strip()
+        if next_node in self.VALID_NODES:
+            return next_node
         return "__end__"
 
-    def _human_node(self, state: AnalystState) -> AnalystState:
+    def _human(self, state: AnalystState) -> AnalystState:
         analysis = state.get("analysis")
         marker = [ANALYSIS, TRY_ANALYSIS]
         analysis_part = None
@@ -125,25 +126,26 @@ class AnalystAgent(BaseAgent):
         result = f"### Feedback (user)\n{edit}"
         state.update(
             feedback_user=result,
-            prev_agent="human_node",
-            next_agent="llm_node",
+            prev_node="human",
+            next_node="llm",
         )
-        print("human_node in analyst agent")
+        print("human in analyst agent")
         return state
 
-    async def _llm_node(self, state: AnalystState) -> AnalystState:
+    async def _llm(self, state: AnalystState) -> AnalystState:
         try:
             result = None
             analysis = None
-            if state.get("prev_agent") not in ["supervisor_node", "human_node"]:
+            if state.get("prev_node") not in ["supervisor", "human"]:
+                messages = state.get("messages")
                 task = state.get("task")
-                response = await self._chain.ainvoke({"task": [HumanMessage(content=f"### Yêu cầu (user)\n{task}")]})
+                response = await self._chain.ainvoke({"task": messages[:-1] + [HumanMessage(content=f"### Yêu cầu (user)\n{task}")]})
                 analysis = f"{ANALYSIS}\n{response.content}"
 
 
-            elif state.get("prev_agent") in ["supervisor_node", "human_node"]:
+            elif state.get("prev_node") in ["supervisor", "human"]:
                 feedback = None
-                if state.get("prev_agent") == "supervisor_node":
+                if state.get("prev_node") == "supervisor":
                     feedback = state.get("feedback_supervisor")
                 else:
                     feedback = state.get("feedback_user")
@@ -153,12 +155,12 @@ class AnalystAgent(BaseAgent):
 
             state.update(
                 analysis=analysis,
-                next_agent="supervisor_node",
-                prev_agent="llm_node",
+                next_node="supervisor",
+                prev_node="llm",
             )
-            print("llm_node in analyst agent")
+            print("llm in analyst agent")
         except Exception as e:
-            print("ERROR ", "llm_node in analyst agent\n", e)
+            print("ERROR ", "llm in analyst agent\n", e)
         return state
 
     async def process(self, state: State) -> State:
@@ -171,8 +173,8 @@ class AnalystAgent(BaseAgent):
             "feedback_supervisor": None,
             "feedback_user": None,
             "analysis": None,
-            "next_agent": None,
-            "prev_agent": "other_node",
+            "next_node": None,
+            "prev_node": "other",
         }
         sub_graph = self.get_subgraph()
         response = await sub_graph.ainvoke(input=input_state)

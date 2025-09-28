@@ -77,5 +77,6 @@ class BaseAgent:
         return current_tasks, current_results, assigned_agents
 
     def get_task(self, state) -> str | None:
+        last_message = state.get("messages")[-1].content
         tasks = state.get("assigned_agents", {}).get(self._agent_name, [])
-        return "\n".join(tasks)
+        return  f"### Yêu cầu (user)\n{last_message}\n\n### Công việc cần thực hiện\n" + "\n".join(tasks)

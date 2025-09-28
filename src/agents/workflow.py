@@ -11,7 +11,7 @@ from src.agents.memory.memory import MemoryAgent
 from src.agents.planner.planner import PlannerAgent
 from src.agents.search.search import SearchAgent
 from src.agents.emotive.emotive import emotiveAgent
-from src.agents.simple.simple import SimpleAgent
+# from src.agents.simple.simple import SimpleAgent
 app = StateGraph(State)
 
 assigner = AssignerAgent()
@@ -24,7 +24,7 @@ search = SearchAgent()
 memory = MemoryAgent()
 emotive = emotiveAgent()
 rag = RagAgent()
-simple = SimpleAgent()
+# simple = SimpleAgent()
 
 VALID_AGENTS = [
         "calculator",
@@ -33,7 +33,7 @@ VALID_AGENTS = [
         "search",
         "emotive",
         "rag",
-        "simple"
+        # "simple"
     ]
 
 def route(state: State) -> str:
@@ -60,7 +60,7 @@ app.add_node("planner", planner.process)
 app.add_node("search", search.process)
 app.add_node("emotive", emotive.process)
 app.add_node("rag", rag.process)
-app.add_node("simple", simple.process)
+# app.add_node("simple", simple.process)
 app.add_node("noop", noop)
 
 
@@ -79,7 +79,7 @@ app.add_conditional_edges(
         "calculator": "calculator",
         "rag": "rag",
         "writer": "writer",
-        "simple": "simple",
+        # "simple": "simple",
     },
 )
 

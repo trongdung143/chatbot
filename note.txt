@@ -1,3 +1,5 @@
 sửa lại emotive agent (nếu thích)
 
 viết rag agent và tích hợp vào graph (quan trọng)
+
+chỉnh lại prompt

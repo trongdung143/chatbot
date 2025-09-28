@@ -9,7 +9,7 @@ prompt = ChatPromptTemplate.from_messages(
 
             Nhiệm vụ:
             - Phân tích yêu cầu.
-            - Trình bày lại những công việc ngắn gọn để agents sau có thể dựa vào đó mà thực hiện.
+            - Trình bày lại những công việc ngắn gọn để những agents sau có thể dựa vào đó mà thực hiện.
             
             Quan trọng:
             - Trình bày các công việc theo đúng thứ tự: công việc nào phải thực hiện trước thì đặt lên trước, công việc nào phụ thuộc thì đặt sau.
