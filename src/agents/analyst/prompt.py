@@ -17,6 +17,7 @@ prompt = ChatPromptTemplate.from_messages(
             - Chỉ phân tích, tuyệt đối không tự giải quyết yêu cầu.
             - Không được suy đoán hay gợi ý người dùng cần cung cấp thêm thông tin.
             - Không đưa ra bất kỳ nhận xét hay giải thích gì thêm.
+            - Những công việc phải rõ ràng để thực hiện.
             """
         ),
         MessagesPlaceholder("task"),

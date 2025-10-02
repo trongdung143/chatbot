@@ -14,9 +14,9 @@ from langchain_core.messages import HumanMessage
 
 
 class SupervisorAgent(BaseAgent):
-    def __init__(self, state, prompt, response_format, tools: Sequence[BaseTool] | None = None) -> None:
+    def __init__(self, agent_name, state, prompt, response_format, tools: Sequence[BaseTool] | None = None) -> None:
         super().__init__(
-            agent_name="supervisor",
+            agent_name=agent_name,
             tools=tools,
             state=state,
             model=None,

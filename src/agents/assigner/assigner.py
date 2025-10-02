@@ -10,10 +10,7 @@ from src.agents.assigner.prompt import prompt
 import ast
 
 class AssignerResponseFormat(BaseModel):
-    assigned_agents: str = Field(
-        description="Đầu ra là ví dụ {'rag': ['công việc 1 của rag', 'công việc 2 của rag'], 'coder': ['công việc 1 của coder', ]}"
-    )
-    content: str = Field(description="Không dùng")
+    content: str = Field(description="Đầu ra là ví dụ {'rag': ['công việc 1 của rag', 'công việc 2 của rag'], 'coder': ['công việc 1 của coder', ]}")
 
 
 class AssignerAgent(BaseAgent):
@@ -34,10 +31,10 @@ class AssignerAgent(BaseAgent):
         task = state.get("results").get(state.get("prev_agent"))[-1]
         result = None
         try:
-            response = await self._chain.ainvoke({"assignment": [HumanMessage(content=f"{task}\n\n### Phân công với khả năng của từng agent phù hợp")]})
-            result = f"### Phân công (assigner)\n{response.assigned_agents}"
+            response = await self._chain.ainvoke({"assignment": [HumanMessage(content=f"{task}\n\n### Phân công công việc")]})
+            result = f"### Phân công (assigner)\n{response.content}"
             current_tasks, current_results, _ = self.update_work(state, task, result)
-            assigned_agents = ast.literal_eval(response.assigned_agents)
+            assigned_agents = ast.literal_eval(response.content)
 
             state.update(
                 prev_agent=self._agent_name,

@@ -31,7 +31,7 @@ class SupervisorResponseFormatForAnalyst(BaseModel):
 
 class SupervisorForAnalyst(SupervisorAgent):
     def __init__(self):
-        super().__init__(state=AnalystState, prompt=prompt_supervisor, response_format=SupervisorResponseFormatForAnalyst)
+        super().__init__(agent_name="supervisor", state=AnalystState, prompt=prompt_supervisor, response_format=SupervisorResponseFormatForAnalyst)
 
     @traceable
     async def process(self, state: AnalystState) -> AnalystState:

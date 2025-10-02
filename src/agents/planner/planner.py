@@ -22,10 +22,7 @@ class PlannerAgent(BaseAgent):
         self._chain = self._prompt | self._model
 
     async def process(self, state: State) -> State:
-        tasks = state.get("assigned_agents").get(self._agent_name)
-        task = ""
-        for t in tasks:
-            task = task + f"{t}\n"
+        task = self.get_task(state)
         result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})

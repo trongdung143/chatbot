@@ -18,14 +18,9 @@ prompt = ChatPromptTemplate.from_messages(
             - Yêu cầu tìm kiếm thông tin → "search"
             - Yêu cầu tính toán → "calculator"
             - Yêu cầu diễn đạt theo phong cách cụ thể → "emotive"
-            - Yêu cầu dùng công cụ ngoài (API, file, Gmail, Google Drive, …) → "tool"
-            - Yêu cầu liên quan đến hình ảnh, OCR, xử lý thị giác → "vision"
+            
             - Yêu cầu cần truy xuất kiến thức vector store hoặc tài liệu đã lưu → "rag"
-
-            Quan trọng:
-            - Công việc trình bày, trả lời người dùng hay tương tự thì bỏ qua, không cần phân công cho bất kì agent nào hết.
-            - Chỉ chọn những agent thực sự cần thiết.
-            - Không thêm bất kỳ giải thích hay nhận xét nào ngoài danh sách agent và công việc cần thực hiện của agent đó.
+            - Những yêu cầu còn lại -> "simple"
 
             Ràng buộc:
             - Mỗi agent chỉ xuất hiện duy nhất một key.

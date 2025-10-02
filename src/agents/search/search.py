@@ -23,6 +23,7 @@ class SearchAgent(BaseAgent):
 
     async def process(self, state: State) -> State:
         task = self.get_task(state)
+        result = None
         try:
             response = await self._chain.ainvoke({"task": [HumanMessage(content=task)]})
             result = f"### Kết quả tìm kiếm (search)\n{response.content}"
